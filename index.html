@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>LOL</title>
+		<script type="application/javascript">
+
+var msgRe = /([^ ]+) (<[^>]+>) (.*)/;
+
+function addMessagePart(p, className, text) {
+	var e = document.createElement("span");
+	e.className = className;
+	e.appendChild(document.createTextNode(text));
+	p.appendChild(e);
+	p.appendChild(document.createTextNode(" "));
+}
+	
+
+function addMessage(txt) {
+	var ts = txt.substr(0, 19);
+	var msg = txt.substr(20);
+	var a = document.getElementById("a");
+	var p = document.createElement("p");
+	
+	m = msg.match(msgRe);
+	addMessagePart(p, "timestamp", ts);
+	if (m) {
+		addMessagePart(p, "forum", m[1]);
+		addMessagePart(p, "sender", m[2]);
+		addMessagePart(p, "text", m[3]);
+	} else {
+		addMessagePart(p, "raw", msg);
+	}
+	a.appendChild(p);
+	p.scrollIntoView(false);
+}
+
+function newmsg(event) {
+	msgs = event.data.split("\n");
+	
+	for (var i = 0; i < msgs.length; i += 1) {
+		addMessage(msgs[i]);
+	}
+}
+		
+function handleCommand(event) {
+
+	console.log(event);
+	
+	window.evt = event;
+	var oReq = new XMLHttpRequest();
+	function reqListener() {
+	}
+	oReq.onload = reqListener;
+	oReq.open("POST", "chunktail.cgi?post=1", true);
+	oReq.send(new FormData(event.target));
+	
+	event.target.reset();
+
+	return false;
+}
+
+function init() {
+	var source = new EventSource("chunktail.cgi");
+	source.onmessage = newmsg;
+	
+	document.getElementById("command").onsubmit = handleCommand;
+}
+
+window.onload = init;
+		</script>
+		<style type="text/css">
+#a {
+	max-height: 20em;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+#a p {
+	margin: 0em 0em 0em 4em;
+	text-indent: -4em;
+}
+.timestamp {
+	color: silver;
+}
+.forum {
+	color: darkblue;
+}
+.sender {
+	color: green;
+}
+.raw {
+	color: purple;
+}
+
+#command {
+	width: 75%;
+}
+		</style>
+	</head>
+	<body>
+		<div id="a"></div>
+		<form id="command">
+			<input type="hidden" name="type" value="command">
+			<input name="text" autofocus>
+			<input type="Submit" value="Send">
+		</form>
+	</body>
+</html>
