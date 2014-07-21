@@ -9,21 +9,28 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
+var running bool = true
+
 type Message struct {
-	Command string
+	Command    string
 	FullSender string
-	Sender string
-	Forum string
-	Args []string
-	Text string
+	Sender     string
+	Forum      string
+	Args       []string
+	Text       string
 }
 
 func (m Message) String() string {
 	a := append([]string{m.FullSender}, m.Args...)
-	args :=strings.Join(a, " ")
+	args := strings.Join(a, " ")
 	return fmt.Sprintf("%s %s %s %s  %s", m.Command, m.Sender, m.Forum, args, m.Text)
+}
+
+func Log(m Message) {
+	fmt.Printf("%d %s\n", time.Now().Unix(), m.String())
 }
 
 func nuhost(s string) (string, string, string) {
@@ -81,7 +88,7 @@ func parse(v string) (Message, error) {
 		lhs = v
 		m.Text = ""
 	}
-	
+
 	m.FullSender = "."
 	m.Forum = "."
 	m.Sender = "."
@@ -90,15 +97,15 @@ func parse(v string) (Message, error) {
 	if parts[0][0] == ':' {
 		m.FullSender = parts[0][1:]
 		parts = parts[1:]
-		
+
 		n, u, _ := nuhost(m.FullSender)
 		if u != "" {
 			m.Sender = n
 		}
 	}
-	
+
 	m.Command = strings.ToUpper(parts[0])
-	switch (m.Command) {
+	switch m.Command {
 	case "PRIVMSG", "NOTICE":
 		n, u, _ := nuhost(parts[1])
 		if u == "" {
@@ -126,15 +133,49 @@ func parse(v string) (Message, error) {
 		m.FullSender = parts[1]
 		m.Forum = m.FullSender
 	}
-		
+
 	return m, nil
 }
 
 func dispatch(outq chan<- string, m Message) {
-	log.Print(m.String())
-	switch (m.Command) {
+	Log(m)
+	switch m.Command {
 	case "PING":
 		outq <- "PONG :" + m.Text
+	}
+}
+
+func handleInfile(path string, outq chan<- string) {
+	f, err := os.Open(path)
+	if (err != nil) {
+		return
+	}
+	defer f.Close()
+	os.Remove(path)
+	inf := bufio.NewScanner(f)
+	for inf.Scan() {
+		outq <- inf.Text()
+	}
+}
+
+func monitorDirectory(dirname string, dir *os.File, outq chan<- string) {
+	latest := time.Unix(0, 0)
+	for running {
+		fi, err := dir.Stat()
+		if err != nil {
+			break
+		}
+		current := fi.ModTime()
+		if current.After(latest) {
+			latest = current
+			dn, _ := dir.Readdirnames(0)
+			for _, fn := range dn {
+				path := dirname + string(os.PathSeparator) + fn
+				handleInfile(path, outq)
+			}
+			_, _ = dir.Seek(0, 0)
+		}
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 
@@ -144,14 +185,22 @@ func usage() {
 }
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	dotls := flag.Bool("notls", true, "Disable TLS security")
+	outqdir := flag.String("outq", "outq", "Output queue directory")
 
 	flag.Parse()
 	if flag.NArg() != 1 {
 		fmt.Fprintln(os.Stderr, "Error: must specify host")
 		os.Exit(69)
 	}
-
+	
+	dir, err := os.Open(*outqdir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer dir.Close()
+	
 	conn, err := connect(flag.Arg(0), *dotls)
 	if err != nil {
 		log.Fatal(err)
@@ -161,6 +210,7 @@ func main() {
 	outq := make(chan string)
 	go readLoop(conn, inq)
 	go writeLoop(conn, outq)
+	go monitorDirectory(*outqdir, dir, outq)
 
 	outq <- "NICK neale"
 	outq <- "USER neale neale neale :neale"
@@ -171,6 +221,8 @@ func main() {
 		}
 		dispatch(outq, p)
 	}
+	
+	running = false
 
 	close(outq)
 }
