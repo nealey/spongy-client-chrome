@@ -13,6 +13,22 @@ function addMessagePart(p, className, text) {
 	p.appendChild(document.createTextNode(" "));
 }
 	
+function focus(e) {
+	var pct = 1;
+	var timeout;
+	
+	e.scrollIntoView(false);
+	e.style.backgroundColor = "yellow";
+	
+	timeout = setInterval(function() {
+		pct = pct - 0.1;
+		e.style.backgroundColor = "rgba(255, 255, 0, " + pct + ")";
+		if (pct <= 0) {
+			e.style.backgroundColor = "inherit"; 
+			clearInterval(timeout);
+		}
+	}, 50)
+}
 
 function addMessage(txt) {
 	var lhs = txt.split(" :", 1)[0]
@@ -43,6 +59,7 @@ function addMessage(txt) {
 			var k = document.getElementById("kiboze");
 			var p2 = p.cloneNode(true);
 			k.insertBefore(p2, k.firstChild);
+			p2.onclick = function() { focus(p); }
 		}
 		break;
 	default:
