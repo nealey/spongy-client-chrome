@@ -1,5 +1,9 @@
 var msgRe = /([^ ]+) (<[^>]+>) (.*)/;
-var authtok;
+var kibozeRe = "neal";
+
+function isinView(oObject) {
+	return (oObject.offsetParent.clientHeight <= oObject.offsetTop);
+}
 
 function addMessagePart(p, className, text) {
 	var e = document.createElement("span");
@@ -32,13 +36,18 @@ function addMessage(txt) {
 		return;
 		break;
 	case "PRIVMSG":
-		addMessagePart(p, "sender", sender);
 		addMessagePart(p, "forum", forum);
+		addMessagePart(p, "sender", sender);
 		addMessagePart(p, "text", msg);
+		if (-1 != msg.search(kibozeRe)) {
+			var k = document.getElementById("kiboze");
+			var p2 = p.cloneNode(true);
+			k.insertBefore(p2, k.firstChild);
+		}
 		break;
 	default:
-		addMessagePart(p, "sender", sender);
 		addMessagePart(p, "forum", forum);
+		addMessagePart(p, "sender", sender);
 		addMessagePart(p, "raw", command + " " + args + " " + msg);
 		break;
 	}
@@ -71,7 +80,7 @@ function handleCommand(event) {
 function init() {
 	var authtok = prompt("Auth token", "");
 	document.getElementById("authtok").value = authtok;
-	
+
 	var source = new EventSource("irc.cgi?auth=" + authtok);
 	source.onmessage = newmsg;
 	

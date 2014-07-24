@@ -5,14 +5,17 @@
 		<script type="application/javascript" src="irc.js">
 		</script>
 		<style type="text/css">
-#a {
+#a, #kiboze {
 	max-height: 20em;
-	overflow-y: scroll;
-	overflow-x: hidden;
+	overflow: scroll;
 }
-#a p {
+#a p, #kiboze p {
 	margin: 0em 0em 0em 4em;
 	text-indent: -4em;
+}
+#kiboze {
+	max-height: 7em;
+	background-color: #eee;
 }
 .timestamp {
 	color: silver;
@@ -27,7 +30,10 @@
 	color: purple;
 }
 
-#command {
+input[name~=target] {
+	width: 7em;
+}
+input[name~=text] {
 	width: 75%;
 }
 		</style>
@@ -37,8 +43,10 @@
 		<form id="command">
 			<input type="hidden" name="auth" value="" id="authtok">
 			<input type="hidden" name="type" value="command">
+			<input name="target" value="#tron">
 			<input name="text" autofocus>
 			<input type="Submit" value="Send">
 		</form>
+		<div id="kiboze"></div>
 	</body>
 </html>
