@@ -17,7 +17,7 @@ type Handler struct {
 
 
 func tail(w http.ResponseWriter, pos int) {
-	f, err := os.Open("/home/neale/bot/neale/log/log")
+	f, err := os.Open("/home/neale/public_html/irc/log")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -38,7 +38,7 @@ func tail(w http.ResponseWriter, pos int) {
 }
 
 func handleCommand(w http.ResponseWriter, text string) {
-	fn := fmt.Sprintf("/home/neale/bot/neale/outq/cgi.%d", time.Now().Unix())
+	fn := fmt.Sprintf("/home/neale/public_html/irc/outq/cgi.%d", time.Now().Unix())
 	f, err := os.Create(fn)
 	if err != nil {
 		fmt.Fprintln(w, "NO")

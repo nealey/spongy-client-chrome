@@ -12,8 +12,6 @@ import (
 	"time"
 )
 
-var running bool = true
-
 type Message struct {
 	Command    string
 	FullSender string
@@ -23,14 +21,32 @@ type Message struct {
 	Text       string
 }
 
-func (m Message) String() string {
-	a := append([]string{m.FullSender}, m.Args...)
-	args := strings.Join(a, " ")
-	return fmt.Sprintf("%s %s %s %s  %s", m.Command, m.Sender, m.Forum, args, m.Text)
+var running bool = true
+var logq chan Message
+
+func isChannel(s string) bool {
+	switch s[0] {
+	case '#', '&', '!', '+', '.', '-':
+		return true
+	default:
+		return false
+	}
 }
 
-func Log(m Message) {
-	fmt.Printf("%d %s\n", time.Now().Unix(), m.String())
+func (m Message) String() string {
+	args := strings.Join(m.Args, " ")
+	return fmt.Sprintf("%s %s %s %s %s :%s", m.FullSender, m.Command, m.Sender, m.Forum, args, m.Text)
+}
+
+func logLoop() {
+	logf, err := os.OpenFile("log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer logf.Close()
+	for m := range logq {
+		fmt.Fprintf(logf, "%d %s\n", time.Now().Unix(), m.String())
+	}
 }
 
 func nuhost(s string) (string, string, string) {
@@ -69,7 +85,8 @@ func readLoop(conn net.Conn, inq chan<- string) {
 
 func writeLoop(conn net.Conn, outq <-chan string) {
 	for v := range outq {
-		fmt.Println(v)
+		m, _ := parse(v)
+		logq <- m
 		fmt.Fprintln(conn, v)
 	}
 }
@@ -79,7 +96,6 @@ func parse(v string) (Message, error) {
 	var parts []string
 	var lhs string
 
-	fmt.Println(v)
 	parts = strings.SplitN(v, " :", 2)
 	if len(parts) == 2 {
 		lhs = parts[0]
@@ -107,11 +123,10 @@ func parse(v string) (Message, error) {
 	m.Command = strings.ToUpper(parts[0])
 	switch m.Command {
 	case "PRIVMSG", "NOTICE":
-		n, u, _ := nuhost(parts[1])
-		if u == "" {
-			m.Forum = m.Sender
+		if isChannel(parts[1]) {
+			m.Forum = parts[1]
 		} else {
-			m.Forum = n
+			m.Forum = m.Sender
 		}
 	case "PART", "MODE", "TOPIC", "KICK":
 		m.Forum = parts[1]
@@ -130,15 +145,21 @@ func parse(v string) (Message, error) {
 			m.Forum = parts[2]
 		}
 	case "NICK":
-		m.FullSender = parts[1]
-		m.Forum = m.FullSender
+		log.Print(v)
+		if len(parts) > 1 {
+			m.Sender = parts[1]
+		} else {
+			m.Sender = m.Text
+			m.Text = ""
+		}
+		m.Forum = m.Sender
 	}
 
 	return m, nil
 }
 
 func dispatch(outq chan<- string, m Message) {
-	Log(m)
+	logq <- m
 	switch m.Command {
 	case "PING":
 		outq <- "PONG :" + m.Text
@@ -147,14 +168,15 @@ func dispatch(outq chan<- string, m Message) {
 
 func handleInfile(path string, outq chan<- string) {
 	f, err := os.Open(path)
-	if (err != nil) {
+	if err != nil {
 		return
 	}
 	defer f.Close()
 	os.Remove(path)
 	inf := bufio.NewScanner(f)
 	for inf.Scan() {
-		outq <- inf.Text()
+		txt := inf.Text()
+		outq <- txt
 	}
 }
 
@@ -185,7 +207,6 @@ func usage() {
 }
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	dotls := flag.Bool("notls", true, "Disable TLS security")
 	outqdir := flag.String("outq", "outq", "Output queue directory")
 
@@ -194,13 +215,13 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Error: must specify host")
 		os.Exit(69)
 	}
-	
+
 	dir, err := os.Open(*outqdir)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer dir.Close()
-	
+
 	conn, err := connect(flag.Arg(0), *dotls)
 	if err != nil {
 		log.Fatal(err)
@@ -208,6 +229,8 @@ func main() {
 
 	inq := make(chan string)
 	outq := make(chan string)
+	logq = make(chan Message)
+	go logLoop()
 	go readLoop(conn, inq)
 	go writeLoop(conn, outq)
 	go monitorDirectory(*outqdir, dir, outq)
@@ -221,8 +244,10 @@ func main() {
 		}
 		dispatch(outq, p)
 	}
-	
+
 	running = false
 
 	close(outq)
+	close(logq)
+	close(inq)
 }
