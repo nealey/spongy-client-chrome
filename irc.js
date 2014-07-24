@@ -1,5 +1,5 @@
 var msgRe = /([^ ]+) (<[^>]+>) (.*)/;
-var kibozeRe = "neal";
+var authtok;
 
 function addMessagePart(p, className, text) {
 	var e = document.createElement("span");
@@ -32,18 +32,13 @@ function addMessage(txt) {
 		return;
 		break;
 	case "PRIVMSG":
-		addMessagePart(p, "forum", forum);
 		addMessagePart(p, "sender", sender);
+		addMessagePart(p, "forum", forum);
 		addMessagePart(p, "text", msg);
-		if (-1 != msg.search(kibozeRe)) {
-			var k = document.getElementById("kiboze");
-			var p2 = p.cloneNode(true);
-			k.insertBefore(p2, k.firstChild);
-		}
 		break;
 	default:
-		addMessagePart(p, "forum", forum);
 		addMessagePart(p, "sender", sender);
+		addMessagePart(p, "forum", forum);
 		addMessagePart(p, "raw", command + " " + args + " " + msg);
 		break;
 	}
@@ -65,7 +60,7 @@ function handleCommand(event) {
 	function reqListener() {
 	}
 	oReq.onload = reqListener;
-	oReq.open("POST", "chunktail.cgi?post=1", true);
+	oReq.open("POST", "irc.cgi", true);
 	oReq.send(new FormData(event.target));
 	
 	event.target.reset();
@@ -74,7 +69,10 @@ function handleCommand(event) {
 }
 
 function init() {
-	var source = new EventSource("chunktail.cgi");
+	var authtok = prompt("Auth token", "");
+	document.getElementById("authtok").value = authtok;
+	
+	var source = new EventSource("irc.cgi?auth=" + authtok);
 	source.onmessage = newmsg;
 	
 	document.getElementById("command").onsubmit = handleCommand;

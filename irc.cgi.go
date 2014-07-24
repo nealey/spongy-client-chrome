@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"bufio"
 	"strconv"
+	"strings"
 	"net/http"
 	"net/http/cgi"
 	"time"
@@ -15,6 +17,7 @@ type Handler struct {
 	cgi.Handler
 }
 
+var authtok string
 
 func tail(w http.ResponseWriter, pos int) {
 	f, err := os.Open("/home/neale/public_html/irc/log")
@@ -53,6 +56,11 @@ func handleCommand(w http.ResponseWriter, text string) {
 
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.FormValue("auth") != authtok {
+		w.Header().Set("Content-Type", "text/plain")
+		fmt.Fprintln(w, "NO")
+		return
+	}
 	switch r.FormValue("type") {
 	case "command":
 		w.Header().Set("Content-Type", "text/plain")
@@ -65,6 +73,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	authtokbytes, err := ioutil.ReadFile("authtok")
+	if err != nil {
+		log.Fatal("Cannot read authtok")
+	}
+	authtok = strings.TrimSpace(string(authtokbytes))
+
 	h := Handler{}
 	if err := cgi.Serve(h); err != nil {
 		log.Fatal(err)
