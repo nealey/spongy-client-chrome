@@ -145,7 +145,6 @@ func parse(v string) (Message, error) {
 			m.Forum = parts[2]
 		}
 	case "NICK":
-		log.Print(v)
 		if len(parts) > 1 {
 			m.Sender = parts[1]
 		} else {

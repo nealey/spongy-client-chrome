@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<title>#tron</title>
+		<link rel="icon" type="image/png" sizes="64x64" href="chat.png">
 		<script type="application/javascript" src="irc.js">
 		</script>
 		<style type="text/css">
@@ -25,6 +26,13 @@
 }
 .sender {
 	color: green;
+}
+.sender:before {
+	color: green;
+	content: "<";
+}
+.sender:after {
+	content: ">";
 }
 .raw {
 	color: purple;

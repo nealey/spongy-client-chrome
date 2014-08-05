@@ -1,5 +1,5 @@
 var msgRe = /([^ ]+) (<[^>]+>) (.*)/;
-var kibozeRe = "neal";
+var kibozeRe = "[Nn]eal";
 
 function isinView(oObject) {
 	return (oObject.offsetParent.clientHeight <= oObject.offsetTop);
@@ -55,11 +55,15 @@ function addMessage(txt) {
 		addMessagePart(p, "forum", forum);
 		addMessagePart(p, "sender", sender);
 		addMessagePart(p, "text", msg);
-		if (-1 != msg.search(kibozeRe)) {
+		if ((sender == forum) || (-1 != msg.search(kibozeRe))) {
 			var k = document.getElementById("kiboze");
 			var p2 = p.cloneNode(true);
 			k.insertBefore(p2, k.firstChild);
 			p2.onclick = function() { focus(p); }
+			// Supposedly changing title makes the tab flash sorta
+			t = document.title
+			document.title = "!"
+			document.title = t
 		}
 		break;
 	default:
