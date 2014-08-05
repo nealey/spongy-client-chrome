@@ -35,18 +35,29 @@ func tail(w http.ResponseWriter, pos int) {
 	}
 	defer f.Close()
 	
-	
-	_, err = f.Seek(int64(pos), 0)
-	if err != nil {
-		log.Fatal(err)
+	for {
+		printid := false
+		
+		_, err = f.Seek(int64(pos), 0)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bf := bufio.NewScanner(f)
+		for bf.Scan() {
+			t := bf.Text()
+			pos += len(t) + 1 // XXX: this breaks if we ever see \r\n
+			fmt.Fprintf(w, "data: %s\n", t)
+			printid = true
+		}
+		if printid {
+			_, err = fmt.Fprintf(w, "id: %d\n\n", pos)
+		}
+		if err != nil {
+			break
+		}
+		w.(http.Flusher).Flush()
+		time.Sleep(350 * time.Millisecond)
 	}
-	bf := bufio.NewScanner(f)
-	for bf.Scan() {
-		t := bf.Text()
-		pos += len(t) + 1 // XXX: this breaks if we ever see \r\n
-		fmt.Fprintf(w, "data: %s\n", t)
-	}
-	fmt.Fprintf(w, "id: %d\n\n", pos)
 }
 
 func handleCommand(w http.ResponseWriter, text string, target string) {
