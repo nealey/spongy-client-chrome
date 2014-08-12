@@ -1,9 +1,58 @@
 var msgRe = /([^ ]+) (<[^>]+>) (.*)/;
-var kibozeRe = "[Nn]eal";
+var kibozeRe = /[Nn]eal/;
+var urlRe = /[a-z]+:\/\/[^ ]*/;
+
+var nick = "Mme. M";
 
 function isinView(oObject) {
 	return (oObject.offsetParent.clientHeight <= oObject.offsetTop);
 }
+
+function selectForum(fe) {
+	var kids = document.getElementById("foraText").childNodes;
+	
+	for (i = 0; i < kids.length; i += 1) {
+		e = kids[i];
+		console.log(i, e);
+		if (e == fe) {
+			e.style.display = "block";
+		} else {
+			e.style.display = "none";
+			if (e.button.className == "current") {
+				e.button.className = "";
+			}
+		}
+	}
+	
+	fe.button.className = "current";
+	if (fe.lastChild) {
+		fe.lastChild.scrollIntoView(false);
+	}
+	document.getElementById("target").value = fe.forum;
+}	
+
+function getForumElement(forum) {
+	var id = "a:" + forum;
+	var fe = document.getElementById(id);
+	
+	if (! fe) {
+		var button = document.createElement("button");
+		button.appendChild(document.createTextNode(forum));
+		button.onclick = function() { selectForum(fe); }
+		document.getElementById("foraButtons").appendChild(button);
+		
+		fe = document.createElement("div");
+		fe.id = id
+		fe.forum = forum
+		fe.button = button
+		document.getElementById("foraText").appendChild(fe);
+	}
+	
+	if (fe.button.className != "current") {
+		fe.button.className = "active";
+	}
+	return fe;
+}	
 
 function addMessagePart(p, className, text) {
 	var e = document.createElement("span");
@@ -12,11 +61,48 @@ function addMessagePart(p, className, text) {
 	p.appendChild(e);
 	p.appendChild(document.createTextNode(" "));
 }
+
+function addText(p, text, kiboze) {
+	// Look for a URL
+	var txtElement = document.createElement("span");
+	txtElement.className = "text";
+	var rhs = text;
+	var match;
+	
+	while ((match = urlRe.exec(rhs)) != null) {
+		var before = rhs.substr(0, match.index);
+		var a = document.createElement("a");
+		var href = match[0];
+		
+		if (href.indexOf("hxx") == 0) {
+			href = "htt" + href.substr(3);
+		}
+		a.href = href
+		a.target = "_blank";
+		a.appendChild(document.createTextNode(match[0]));
+		txtElement.appendChild(document.createTextNode(before));
+		txtElement.appendChild(a);
+		rhs = rhs.substr(match.index + match[0].length);
+	}
+	txtElement.appendChild(document.createTextNode(rhs));
+	p.appendChild(txtElement);
+	
+	if ((kiboze) || (-1 != text.search(kibozeRe))) {
+		var k = document.getElementById("kiboze");
+		var p2 = p.cloneNode(true);
+		k.insertBefore(p2, k.firstChild);
+		p2.onclick = function() { focus(p); }
+		
+		// Setting title makes the tab flash sorta
+		document.title = document.title;
+	}
+}
 	
 function focus(e) {
 	var pct = 1;
 	var timeout;
 	
+	selectForum(e.parentNode);	
 	e.scrollIntoView(false);
 	e.style.backgroundColor = "yellow";
 	
@@ -41,7 +127,7 @@ function addMessage(txt) {
 	var args = parts.slice(5);
 	var msg = txt.substr(lhs.length + 2)
 	
-	var a = document.getElementById("a");
+	var forumElement = getForumElement(forum);
 	var p = document.createElement("p");
 	
 	addMessagePart(p, "timestamp", ts.toLocaleTimeString());
@@ -54,17 +140,12 @@ function addMessage(txt) {
 	case "PRIVMSG":
 		addMessagePart(p, "forum", forum);
 		addMessagePart(p, "sender", sender);
-		addMessagePart(p, "text", msg);
-		if ((sender == forum) || (-1 != msg.search(kibozeRe))) {
-			var k = document.getElementById("kiboze");
-			var p2 = p.cloneNode(true);
-			k.insertBefore(p2, k.firstChild);
-			p2.onclick = function() { focus(p); }
-			// Supposedly changing title makes the tab flash sorta
-			t = document.title
-			document.title = "!"
-			document.title = t
-		}
+		addText(p, msg, (sender == forum));
+		break;
+	case "NOTICE":
+		addMessagePart(p, "forum", forum);
+		addMessagePart(p, "sender notice", sender);
+		addText(p, msg, (sender == forum));
 		break;
 	default:
 		addMessagePart(p, "forum", forum);
@@ -72,7 +153,7 @@ function addMessage(txt) {
 		addMessagePart(p, "raw", command + " " + args + " " + msg);
 		break;
 	}
-	a.appendChild(p);
+	forumElement.appendChild(p);
 	p.scrollIntoView(false);
 }
 

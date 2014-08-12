@@ -3,58 +3,16 @@
 	<head>
 		<title>#tron</title>
 		<link rel="icon" type="image/png" sizes="64x64" href="chat.png">
-		<script type="application/javascript" src="irc.js">
-		</script>
-		<style type="text/css">
-#a, #kiboze {
-	max-height: 20em;
-	overflow: scroll;
-}
-#a p, #kiboze p {
-	margin: 0em 0em 0em 4em;
-	text-indent: -4em;
-}
-#kiboze {
-	max-height: 7em;
-	background-color: #eee;
-}
-.timestamp {
-	color: silver;
-}
-.forum {
-	color: darkblue;
-}
-.sender {
-	color: green;
-}
-.sender:before {
-	color: green;
-	content: "<";
-}
-.sender:after {
-	content: ">";
-}
-.raw {
-	color: purple;
-}
-
-input[name~=target] {
-	width: 7em;
-}
-input[name~=text] {
-	width: 75%;
-}
-body {
-	height: 100%;
-}
-		</style>
+		<script type="application/javascript" src="irc.js"></script>
+		<link rel="stylesheet" type="text/css" href="irc.css">
 	</head>
 	<body>
-		<div id="a"></div>
+		<div id="foraButtons"></div>
+		<div id="foraText"></div>
 		<form id="command">
 			<input type="hidden" name="auth" value="" id="authtok">
 			<input type="hidden" name="type" value="command">
-			<input name="target" value="#tron">
+			<input type="hidden" name="target" id="target">
 			<input name="text" autofocus>
 			<input type="Submit" value="Send">
 		</form>

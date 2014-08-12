@@ -123,9 +123,12 @@ func parse(v string) (Message, error) {
 	m.Command = strings.ToUpper(parts[0])
 	switch m.Command {
 	case "PRIVMSG", "NOTICE":
-		if isChannel(parts[1]) {
+		switch {
+		case isChannel(parts[1]):
 			m.Forum = parts[1]
-		} else {
+		case m.FullSender == ".":
+			m.Forum = parts[1]
+		default:
 			m.Forum = m.Sender
 		}
 	case "PART", "MODE", "TOPIC", "KICK":
