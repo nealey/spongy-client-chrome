@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/go-fsnotify/fsnotify"
 	"io/ioutil"
 	"log"
 	"os"
@@ -28,24 +29,37 @@ func ReadString(fn string) string {
 	return strings.TrimSpace(string(octets))
 }
 
-func tail(w http.ResponseWriter, pos int) {
+func tail(w http.ResponseWriter, pos int64) {
 	f, err := os.Open(path.Join(ServerDir, "log"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
 	
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer watcher.Close()
+	
 	for {
 		printid := false
 		
-		_, err = f.Seek(int64(pos), 0)
+		newpos, err := f.Seek(pos, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		if newpos < pos {
+			// File has been truncated!
+			pos = 0
+			f.Seek(0, 0)
+		}
+
 		bf := bufio.NewScanner(f)
 		for bf.Scan() {
 			t := bf.Text()
-			pos += len(t) + 1 // XXX: this breaks if we ever see \r\n
+			pos += int64(len(t)) + 1 // XXX: this breaks if we ever see \r\n
 			fmt.Fprintf(w, "data: %s\n", t)
 			printid = true
 		}
@@ -56,7 +70,13 @@ func tail(w http.ResponseWriter, pos int) {
 			break
 		}
 		w.(http.Flusher).Flush()
-		time.Sleep(350 * time.Millisecond)
+		
+		select {
+		case _ = <-watcher.Events:
+			// Somethin' happened!
+		case err := <-watcher.Errors:
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -104,7 +124,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		handleCommand(w, r.Form.Get("text"), r.FormValue("target"))
 	default:
 		w.Header().Set("Content-Type", "text/event-stream")
-		id, _ := strconv.Atoi(os.Getenv("HTTP_LAST_EVENT_ID"))
+		id, _ := strconv.ParseInt(os.Getenv("HTTP_LAST_EVENT_ID"), 0, 64)
 		tail(w, id)
 	}
 }
