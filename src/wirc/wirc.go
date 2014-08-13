@@ -22,6 +22,8 @@ type Message struct {
 }
 
 var running bool = true
+var nick string
+var gecos string
 var logq chan Message
 
 func isChannel(s string) bool {
@@ -165,6 +167,9 @@ func dispatch(outq chan<- string, m Message) {
 	switch m.Command {
 	case "PING":
 		outq <- "PONG :" + m.Text
+	case "433":
+		nick = nick + "_"
+		outq <- fmt.Sprintf("NICK %s", nick)
 	}
 }
 
@@ -211,10 +216,11 @@ func usage() {
 func main() {
 	dotls := flag.Bool("notls", true, "Disable TLS security")
 	outqdir := flag.String("outq", "outq", "Output queue directory")
+	flag.StringVar(&gecos, "gecos", "Bob The Merry Slug", "Gecos entry (full name)")
 
 	flag.Parse()
-	if flag.NArg() != 1 {
-		fmt.Fprintln(os.Stderr, "Error: must specify host")
+	if flag.NArg() != 2 {
+		fmt.Fprintln(os.Stderr, "Error: must specify nickname and host")
 		os.Exit(69)
 	}
 
@@ -223,8 +229,11 @@ func main() {
 		log.Fatal(err)
 	}
 	defer dir.Close()
+	
+	nick := flag.Arg(0)
+	host := flag.Arg(1)
 
-	conn, err := connect(flag.Arg(0), *dotls)
+	conn, err := connect(host, *dotls)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -237,8 +246,8 @@ func main() {
 	go writeLoop(conn, outq)
 	go monitorDirectory(*outqdir, dir, outq)
 
-	outq <- "NICK neale"
-	outq <- "USER neale neale neale :neale"
+	outq <- fmt.Sprintf("NICK %s", nick)
+	outq <- fmt.Sprintf("USER %s %s %s: %s", nick, nick, nick, gecos)
 	for v := range inq {
 		p, err := parse(v)
 		if err != nil {
@@ -251,5 +260,4 @@ func main() {
 
 	close(outq)
 	close(logq)
-	close(inq)
 }

@@ -18,7 +18,7 @@ type Handler struct {
 	cgi.Handler
 }
 
-var BaseDir string
+var ServerDir string
 
 func ReadString(fn string) string {
 	octets, err := ioutil.ReadFile(fn)
@@ -29,7 +29,7 @@ func ReadString(fn string) string {
 }
 
 func tail(w http.ResponseWriter, pos int) {
-	f, err := os.Open(path.Join(BaseDir, "log"))
+	f, err := os.Open(path.Join(ServerDir, "log"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +61,7 @@ func tail(w http.ResponseWriter, pos int) {
 }
 
 func handleCommand(w http.ResponseWriter, text string, target string) {
-	fn := path.Join(BaseDir, fmt.Sprintf("outq/cgi.%d", time.Now().Unix()))
+	fn := path.Join(ServerDir, fmt.Sprintf("outq/cgi.%d", time.Now().Unix()))
 	f, err := os.Create(fn)
 	if err != nil {
 		fmt.Fprintln(w, "NO")
@@ -84,7 +84,15 @@ func handleCommand(w http.ResponseWriter, text string, target string) {
 
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	authtok := ReadString(path.Join(BaseDir, "authtok"))
+	// XXX: I'm not happy with this irc.basedir file
+	BaseDir := ReadString("irc.basedir")
+	ServerDir = path.Join(BaseDir, r.FormValue("server"))
+	
+	if m, _ := path.Match(path.Join(BaseDir, "*"), ServerDir); ! m {
+		ServerDir = path.Join(BaseDir, "default")
+	}
+	
+	authtok := ReadString(path.Join(ServerDir, "authtok"))
 	if r.FormValue("auth") != authtok {
 		w.Header().Set("Content-Type", "text/plain")
 		fmt.Fprintln(w, "NO")
@@ -102,7 +110,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	BaseDir = ReadString("irc.basedir")
 	h := Handler{}
 	if err := cgi.Serve(h); err != nil {
 		log.Fatal(err)
