@@ -84,12 +84,12 @@ func handleCommand(w http.ResponseWriter, text string, target string) {
 
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// XXX: I'm not happy with this irc.basedir file
-	BaseDir := ReadString("irc.basedir")
+	BaseDir := "servers"
+	DefaultDir := path.Join(BaseDir, "default")
 	ServerDir = path.Join(BaseDir, r.FormValue("server"))
 	
-	if m, _ := path.Match(path.Join(BaseDir, "*"), ServerDir); ! m {
-		ServerDir = path.Join(BaseDir, "default")
+	if path.Dir(DefaultDir) != path.Dir(ServerDir) {
+		ServerDir = DefaultDir
 	}
 	
 	authtok := ReadString(path.Join(ServerDir, "authtok"))

@@ -180,10 +180,11 @@ function handleCommand(event) {
 }
 
 function init() {
+	var server = document.getElementById("server").value;
 	var authtok = prompt("Auth token", "");
 	document.getElementById("authtok").value = authtok;
 
-	var source = new EventSource("wirc.cgi?auth=" + authtok);
+	var source = new EventSource("wirc.cgi?server=" + server + "&auth=" + authtok);
 	source.onmessage = newmsg;
 	
 	document.getElementById("command").onsubmit = handleCommand;
