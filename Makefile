@@ -1,8 +1,9 @@
-all: irc.cgi irc
+all: wirc.cgi wirc
 
-%: %.go
-	go build $<
+export GOPATH = $(CURDIR)
 
-irc.cgi: irc.cgi.go
-	go build irc.cgi.go
-	chmod +s irc.cgi
+%:
+	go build $@
+
+wirc.cgi:
+	go build $@
