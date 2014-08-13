@@ -171,7 +171,7 @@ function handleCommand(event) {
 	function reqListener() {
 	}
 	oReq.onload = reqListener;
-	oReq.open("POST", "irc.cgi", true);
+	oReq.open("POST", "wirc.cgi", true);
 	oReq.send(new FormData(event.target));
 	
 	event.target.reset();
@@ -183,7 +183,7 @@ function init() {
 	var authtok = prompt("Auth token", "");
 	document.getElementById("authtok").value = authtok;
 
-	var source = new EventSource("irc.cgi?auth=" + authtok);
+	var source = new EventSource("wirc.cgi?auth=" + authtok);
 	source.onmessage = newmsg;
 	
 	document.getElementById("command").onsubmit = handleCommand;
