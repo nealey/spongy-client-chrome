@@ -27,6 +27,10 @@ var gecos string
 var logq chan Message
 
 func isChannel(s string) bool {
+	if (s == "") {
+		return false
+	}
+
 	switch s[0] {
 	case '#', '&', '!', '+', '.', '-':
 		return true

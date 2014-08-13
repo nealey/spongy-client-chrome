@@ -30,7 +30,9 @@ func ReadString(fn string) string {
 }
 
 func tail(w http.ResponseWriter, pos int64) {
-	f, err := os.Open(path.Join(ServerDir, "log"))
+	logfn := path.Join(ServerDir, "log")
+
+	f, err := os.Open(logfn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,6 +43,7 @@ func tail(w http.ResponseWriter, pos int64) {
 		log.Fatal(err)
 	}
 	defer watcher.Close()
+	watcher.Add(logfn)
 	
 	for {
 		printid := false
