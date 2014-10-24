@@ -158,6 +158,9 @@ function addMessage(txt) {
 		addMessagePart(p, "raw", command + " " + args + " " + msg);
 		break;
 	}
+	while (forumElement.childNodes.length > 500) {
+		forumElement.removeChild(forumElement.firstChild)
+	}
 	forumElement.appendChild(p);
 	p.scrollIntoView(false);
 }
@@ -181,12 +184,11 @@ function handleCommand(event) {
 		var parts = txt.split(" ");
 
 		connect(parts[1], parts[2], parts[3]);
-		return;
+	} else {
+		oReq.onload = reqListener;
+		oReq.open("POST", window.postURL, true);
+		oReq.send(new FormData(event.target));
 	}
-
-	oReq.onload = reqListener;
-	oReq.open("POST", window.postURL, true);
-	oReq.send(new FormData(event.target));
 	
 	event.target.reset();
 
@@ -198,12 +200,23 @@ function connect(url, server, authtok) {
 	document.getElementById("server").value = server;
 	document.getElementById("authtok").value = authtok;
 	var pullURL = url + "?server=" + server + "&auth=" + authtok
-	var source = new EventSource(pullURL);
-	source.onmessage = newmsg;
+
+	if (window.source != null) {
+		window.source.close();
+	}
+	window.source = new EventSource(pullURL);
+	window.source.onmessage = newmsg;
+
+	chrome.storage.sync.set({"url": url, "server": server, "authtok": authtok});
+}
+
+function restore(items) {
+	connect(items["url"], items["server"], items["authtok"]);
 }
 
 function init() {
 	document.getElementById("command").onsubmit = handleCommand;
+	chrome.storage.sync.get(["url", "server", "authtok"], restore);
 }
 
 window.onload = init;
