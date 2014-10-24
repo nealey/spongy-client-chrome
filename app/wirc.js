@@ -4,60 +4,63 @@ var urlRe = /[a-z]+:\/\/[^ ]*/;
 
 var nick = "Mme. M";
 
+var scrollbackLength = 500;
+
 if (String.prototype.startsWith == null) {
 	String.prototype.startsWith = function(needle) {
 		return this.lastIndexOf(needle, 0) == 0;
 	}
 }
 
+function getTemplate(className) {
+	return document.templates.getElementsByClassName(className)[0].cloneNode(true);
+}
+
 function isinView(oObject) {
 	return (oObject.offsetParent.clientHeight <= oObject.offsetTop);
 }
 
-function selectForum(fe) {
-	var kids = document.getElementById("foraText").childNodes;
-	
+function selectForum(room) {
+	var kids = document.rooms_list.childNodes;
+
 	for (i = 0; i < kids.length; i += 1) {
 		e = kids[i];
-		if (e == fe) {
-			e.style.display = "block";
+		if (e == room) {
+			e.className = "room selected";
+			e.messages.display = "block";
 		} else {
-			e.style.display = "none";
-			if (e.button.className == "current") {
-				e.button.className = "";
-			}
+			e.className = "room";
+			e.messages.display = "none";
 		}
 	}
-	
-	fe.button.className = "current";
-	if (fe.lastChild) {
-		fe.lastChild.scrollIntoView(false);
-	}
-	document.getElementById("target").value = fe.forum;
-}	
 
+	if (room.lastChild) {
+		room.lastChild.scrollIntoView(false);
+	}
+}
+
+fora = {}
 function getForumElement(forum) {
-	var id = "a:" + forum;
-	var fe = document.getElementById(id);
-	
+	var fe = fora[forum];
+
 	if (! fe) {
-		var button = document.createElement("button");
-		button.appendChild(document.createTextNode(forum));
-		button.onclick = function() { selectForum(fe); }
-		document.getElementById("foraButtons").appendChild(button);
-		
-		fe = document.createElement("div");
-		fe.id = id
-		fe.forum = forum
-		fe.button = button
-		document.getElementById("foraText").appendChild(fe);
+		var room = getTemplate("channel room");
+		room.textContent = forum;
+		document.rooms_list.appendChild(room);
+
+		fe = getTemplate("messages");
+		fe.room = room;
+
+		room.messages = fe;
+		// XXX: split out into non-anon function
+		room.addEventListener("click", function() {selectForum(fe)});
+
+		fora[forum] = fe;
+		document.getElementById("messages-container").appendChild(fe);
 	}
-	
-	if (fe.button.className != "current") {
-		fe.button.className = "active";
-	}
+
 	return fe;
-}	
+}
 
 function addMessagePart(p, className, text) {
 	var e = document.createElement("span");
@@ -73,12 +76,12 @@ function addText(p, text, kiboze) {
 	txtElement.className = "text";
 	var rhs = text;
 	var match;
-	
+
 	while ((match = urlRe.exec(rhs)) != null) {
 		var before = rhs.substr(0, match.index);
 		var a = document.createElement("a");
 		var href = match[0];
-		
+
 		if (href.indexOf("hxx") == 0) {
 			href = "htt" + href.substr(3);
 		}
@@ -91,31 +94,34 @@ function addText(p, text, kiboze) {
 	}
 	txtElement.appendChild(document.createTextNode(rhs));
 	p.appendChild(txtElement);
-	
+
 	if ((kiboze) || (-1 != text.search(kibozeRe))) {
 		var k = document.getElementById("kiboze");
 		var p2 = p.cloneNode(true);
-		k.insertBefore(p2, k.firstChild);
-		p2.onclick = function() { focus(p); }
-		
-		// Setting title makes the tab flash sorta
-		document.title = document.title;
+
+		if (k) {
+			k.insertBefore(p2, k.firstChild);
+			p2.onclick = function() { focus(p); }
+
+			// Setting title makes the tab flash sorta
+			document.title = document.title;
+		}
 	}
 }
-	
+
 function focus(e) {
 	var pct = 1;
 	var timeout;
-	
-	selectForum(e.parentNode);	
+
+	selectForum(e.parentNode);
 	e.scrollIntoView(false);
 	e.style.backgroundColor = "yellow";
-	
+
 	timeout = setInterval(function() {
 		pct = pct - 0.1;
 		e.style.backgroundColor = "rgba(255, 255, 0, " + pct + ")";
 		if (pct <= 0) {
-			e.style.backgroundColor = "inherit"; 
+			e.style.backgroundColor = "inherit";
 			clearInterval(timeout);
 		}
 	}, 50)
@@ -131,12 +137,12 @@ function addMessage(txt) {
 	var forum = parts[4];
 	var args = parts.slice(5);
 	var msg = txt.substr(lhs.length + 2)
-	
+
 	var forumElement = getForumElement(forum);
-	var p = document.createElement("p");
-	
+	var p = getTemplate("message");
+
 	addMessagePart(p, "timestamp", ts.toLocaleTimeString());
-	
+
 	switch (command) {
 	case "PING":
 	case "PONG":
@@ -158,27 +164,29 @@ function addMessage(txt) {
 		addMessagePart(p, "raw", command + " " + args + " " + msg);
 		break;
 	}
-	while (forumElement.childNodes.length > 500) {
+	while (forumElement.childNodes.length > scrollbackLength) {
 		forumElement.removeChild(forumElement.firstChild)
 	}
 	forumElement.appendChild(p);
 	p.scrollIntoView(false);
 }
 
-function newmsg(event) {
-	msgs = event.data.split("\n");
-	
-	for (var i = 0; i < msgs.length; i += 1) {
+function newmsg(oEvent) {
+	msgs = oEvent.data.split("\n");
+
+	var first = Math.max(0, msgs.length - scrollbackLength);
+	for (var i = first; i < msgs.length; i += 1) {
 		addMessage(msgs[i]);
 	}
 }
-		
-function handleCommand(event) {
+
+function handleInput(oEvent) {
+	console.log(oEvent);
 	var oReq = new XMLHttpRequest();
 	function reqListener() {
 	}
-	
-	var txt = document.getElementById("text").value;
+
+	var txt = oEvent.target.value;
 	if (txt.startsWith("/connect ")) {
 		// XXX: should allow tokens with spaces
 		var parts = txt.split(" ");
@@ -189,34 +197,41 @@ function handleCommand(event) {
 		oReq.open("POST", window.postURL, true);
 		oReq.send(new FormData(event.target));
 	}
-	
-	event.target.reset();
+
+	oEvent.target.value = "";
 
 	return false;
 }
 
 function connect(url, server, authtok) {
-	window.postURL = url;
-	document.getElementById("server").value = server;
-	document.getElementById("authtok").value = authtok;
+	document.postURL = url;
 	var pullURL = url + "?server=" + server + "&auth=" + authtok
 
-	if (window.source != null) {
-		window.source.close();
+	if (document.source != null) {
+		document.source.close();
 	}
-	window.source = new EventSource(pullURL);
-	window.source.onmessage = newmsg;
+	document.source = new EventSource(pullURL);
+	document.source.onmessage = newmsg;
 
-	chrome.storage.sync.set({"url": url, "server": server, "authtok": authtok});
+	chrome.storage.sync.set({"connections": [[url, server, authtok]]});
 }
 
 function restore(items) {
-	connect(items["url"], items["server"], items["authtok"]);
+	var connections = items["connections"];
+
+	for (var k = 0; k < connections.length; k += 1) {
+		var conn = connections[k];
+
+		connect(conn[0], conn[1], conn[2]);
+	}
 }
 
 function init() {
-	document.getElementById("command").onsubmit = handleCommand;
-	chrome.storage.sync.get(["url", "server", "authtok"], restore);
+	chrome.storage.sync.get("connections", restore);
+	document.getElementById("input").addEventListener("change", handleInput);
+
+	document.templates = document.getElementById("templates");
+	document.rooms_list = document.getElementById("rooms-container").getElementsByClassName("rooms")[0];
 }
 
-window.onload = init;
+window.addEventListener("load", init);
