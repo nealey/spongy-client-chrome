@@ -4,6 +4,12 @@ var urlRe = /[a-z]+:\/\/[^ ]*/;
 
 var nick = "Mme. M";
 
+if (String.prototype.startsWith == null) {
+	String.prototype.startsWith = function(needle) {
+		return this.lastIndexOf(needle, 0) == 0;
+	}
+}
+
 function isinView(oObject) {
 	return (oObject.offsetParent.clientHeight <= oObject.offsetTop);
 }
@@ -13,7 +19,6 @@ function selectForum(fe) {
 	
 	for (i = 0; i < kids.length; i += 1) {
 		e = kids[i];
-		console.log(i, e);
 		if (e == fe) {
 			e.style.display = "block";
 		} else {
@@ -166,12 +171,21 @@ function newmsg(event) {
 }
 		
 function handleCommand(event) {
-	window.evt = event;
 	var oReq = new XMLHttpRequest();
 	function reqListener() {
 	}
+	
+	var txt = document.getElementById("text").value;
+	if (txt.startsWith("/connect ")) {
+		// XXX: should allow tokens with spaces
+		var parts = txt.split(" ");
+
+		connect(parts[1], parts[2], parts[3]);
+		return;
+	}
+
 	oReq.onload = reqListener;
-	oReq.open("POST", "wirc.cgi", true);
+	oReq.open("POST", window.postURL, true);
 	oReq.send(new FormData(event.target));
 	
 	event.target.reset();
@@ -179,14 +193,16 @@ function handleCommand(event) {
 	return false;
 }
 
-function init() {
-	var server = document.getElementById("server").value;
-	var authtok = prompt("Auth token", "");
+function connect(url, server, authtok) {
+	window.postURL = url;
+	document.getElementById("server").value = server;
 	document.getElementById("authtok").value = authtok;
-
-	var source = new EventSource("wirc.cgi?server=" + server + "&auth=" + authtok);
+	var pullURL = url + "?server=" + server + "&auth=" + authtok
+	var source = new EventSource(pullURL);
 	source.onmessage = newmsg;
-	
+}
+
+function init() {
 	document.getElementById("command").onsubmit = handleCommand;
 }
 
