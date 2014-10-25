@@ -127,8 +127,14 @@ function addMessage(txt) {
 	var args = parts.slice(5);
 	var msg = txt.substr(lhs.length + 2)
 	
-	var forumElement = getForumElement(forum);
+	var forumElement;
 	var p = document.createElement("p");
+	
+	if (command == "NICK") {
+		forumElement = getForumElement(".");
+	} else {
+		forumElement = getForumElement(forum);
+	}
 	
 	addMessagePart(p, "timestamp", ts.toLocaleTimeString());
 	
@@ -188,6 +194,9 @@ function init() {
 	source.onmessage = newmsg;
 	
 	document.getElementById("command").onsubmit = handleCommand;
+
+	var txte = document.getElementById("text");
+	txte.addEventListener("blur", txte.focus);
 }
 
 window.onload = init;

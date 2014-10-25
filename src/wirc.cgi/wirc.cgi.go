@@ -29,10 +29,20 @@ func ReadString(fn string) string {
 	return strings.TrimSpace(string(octets))
 }
 
-func tail(w http.ResponseWriter, pos int64) {
-	logfn := path.Join(ServerDir, "log")
+func tail(w http.ResponseWriter, filename string, pos int64) {
+	var err error
 
-	f, err := os.Open(logfn)
+	currentfn := path.Join(ServerDir, "current")
+	if filename == "" {
+		filename, err = os.Readlink(currentfn)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	
+	filepath := path.Join(ServerDir, filename)
+
+	f, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,7 +53,7 @@ func tail(w http.ResponseWriter, pos int64) {
 		log.Fatal(err)
 	}
 	defer watcher.Close()
-	watcher.Add(logfn)
+	watcher.Add(filepath)
 	
 	for {
 		printid := false
@@ -52,22 +62,33 @@ func tail(w http.ResponseWriter, pos int64) {
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		if newpos < pos {
-			// File has been truncated!
-			pos = 0
-			f.Seek(0, 0)
+		
+		if newpos != pos {
+			log.Fatal("Lost my position in the log, somehow (log truncated?)")
 		}
-
+		
 		bf := bufio.NewScanner(f)
 		for bf.Scan() {
 			t := bf.Text()
 			pos += int64(len(t)) + 1 // XXX: this breaks if we ever see \r\n
+			
+			parts := strings.Split(t, " ")
+			if (len(parts) >= 4) && (parts[3] == "NEXTLOG") {
+				watcher.Remove(filepath)
+				filename = parts[4]
+				filepath = path.Join(ServerDir, filename)
+				f.Close()
+				f, err = os.Open(filename)
+				if err != nil {
+					log.Fatal(err)
+				}
+				watcher.Add(filename)
+			}
 			fmt.Fprintf(w, "data: %s\n", t)
 			printid = true
 		}
 		if printid {
-			_, err = fmt.Fprintf(w, "id: %d\n\n", pos)
+			_, err = fmt.Fprintf(w, "id: %s/%d\n\n", filename, pos)
 		}
 		if err != nil {
 			break
@@ -127,8 +148,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		handleCommand(w, r.Form.Get("text"), r.FormValue("target"))
 	default:
 		w.Header().Set("Content-Type", "text/event-stream")
-		id, _ := strconv.ParseInt(os.Getenv("HTTP_LAST_EVENT_ID"), 0, 64)
-		tail(w, id)
+		parts := strings.Split(os.Getenv("HTTP_LAST_EVENT_ID"), "/")
+		if len(parts) == 2 {
+			filename := path.Base(parts[0])
+			pos, _ := strconv.ParseInt(parts[1], 0, 64)
+			tail(w, filename, pos)
+		} else {
+			tail(w, "", 0)
+		}
 	}
 }
 

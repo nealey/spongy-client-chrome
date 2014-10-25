@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"logfile"
 	"net"
 	"os"
 	"strings"
@@ -24,6 +25,7 @@ type Message struct {
 var running bool = true
 var nick string
 var gecos string
+var maxlogsize uint
 var logq chan Message
 
 func isChannel(s string) bool {
@@ -45,13 +47,11 @@ func (m Message) String() string {
 }
 
 func logLoop() {
-	logf, err := os.OpenFile("log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-	if err != nil {
-		log.Fatal(err)
-	}
+	logf := logfile.NewLogfile(int(maxlogsize))
 	defer logf.Close()
+	
 	for m := range logq {
-		fmt.Fprintf(logf, "%d %s\n", time.Now().Unix(), m.String())
+		logf.Log(m.String())
 	}
 }
 
@@ -220,6 +220,7 @@ func usage() {
 func main() {
 	dotls := flag.Bool("notls", true, "Disable TLS security")
 	outqdir := flag.String("outq", "outq", "Output queue directory")
+	flag.UintVar(&maxlogsize, "logsize", 8000, "Log entries before rotating")
 	flag.StringVar(&gecos, "gecos", "Bob The Merry Slug", "Gecos entry (full name)")
 
 	flag.Parse()
