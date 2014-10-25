@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg548"
+   inkscape:version="0.48.5 r10040"
+   inkscape:export-filename="/home/neale/tmp/chat.png"
+   viewBox="0 0 500 500"
+   sodipodi:version="0.32"
+   inkscape:export-xdpi="11.52"
+   version="1.0"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-ydpi="11.52"
+   sodipodi:docname="chat.svg"
+   width="100%"
+   height="100%">
+  <defs
+     id="defs550" />
+  <sodipodi:namedview
+     id="base"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:zoom="1.26"
+     inkscape:current-layer="g3182"
+     inkscape:cx="258.38604"
+     inkscape:cy="234.12698"
+     inkscape:window-width="1280"
+     showgrid="false"
+     inkscape:window-height="738"
+     inkscape:window-maximized="1" />
+  <g
+     id="g3182"
+     transform="translate(14.44,59.9282)">
+    <path
+       id="path779"
+       style="fill:#660080;fill-rule:evenodd;stroke:#dd55ff;stroke-width:15;stroke-linecap:round;stroke-linejoin:round"
+       d="m 132.35508,161.83857 c -64.776001,1.05 -121.910001,37.14 -134.0400006,88.35 -13.8580004,58.5 36.2389996,114.67 111.8400006,125.43 0.01,0.09 -0.01,0.22 -0.02,0.35 l -0.43,0.02 -58.912001,54.78 121.030001,-56.86 -1.19,0.04 0.78,-0.6 1.73,-0.05 -1.32,0.61 1.66,-0.06 v -0.57 h 0.02 c 52.37,-11.54 89.09,-42.8 98.91,-84.23 13.86,-58.52 -36.3,-114.72 -111.95,-125.44 -9.46,-1.34 -18.86,-1.91 -28.11,-1.77 z"
+       inkscape:connector-curvature="0" />
+    <path
+       id="path2391"
+       style="fill:#b3ff80;fill-rule:evenodd;stroke:#338000;stroke-width:22.78469849000000025;stroke-linecap:round;stroke-linejoin:round"
+       d="m 276.28812,-45.717333 c 92.80208,1.491258 174.6675,53.2102445 192.04083,126.580393 19.85687,83.81352 -51.91493,164.28908 -160.23339,179.70292 -0.0228,0.12532 0.0114,0.31899 0.0228,0.50127 l 0.62657,0.0342 84.39453,78.49328 -173.40295,-81.47808 1.69746,0.057 -1.10506,-0.85442 -2.48353,-0.0798 1.89113,0.87721 -2.381,-0.0798 v -0.82025 h -0.0342 C 142.29131,240.68634 89.68144,195.90301 75.623281,136.53748 55.755024,52.688641 127.61796,-27.831345 236.01617,-43.199624 c 13.5455,-1.916193 27.01126,-2.731885 40.27195,-2.518848 z"
+       inkscape:connector-curvature="0" />
+  </g>
+  <metadata
+     id="metadata3045">
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://openclipart.org/">
+            <dc:title>Openclipart</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:title></dc:title>
+        <dc:date>2008-02-19T10:10:56</dc:date>
+        <dc:description />
+        <dc:source>https://openclipart.org/detail/14475/callout-chat-by-ericlemerdy</dc:source>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>ericlemerdy</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>balloon</rdf:li>
+            <rdf:li>bubble</rdf:li>
+            <rdf:li>callout</rdf:li>
+            <rdf:li>speech</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>

@@ -1,0 +1,15 @@
+{
+	"appName": {
+		"message": "wIRC Chat Client",
+		"description": "Application name"
+	},
+	"appShortName": {
+		"message": "wIRC",
+		"description": "Short application name"
+	},
+	"appDesc": {
+		"message": "Chat client for the wIRC bouncer thingamajiggy",
+		"description": "Application description for app store listing"
+	}
+}	
+
