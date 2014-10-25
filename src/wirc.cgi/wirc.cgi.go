@@ -19,7 +19,7 @@ type Handler struct {
 	cgi.Handler
 }
 
-var ServerDir string
+var NetworkDir string
 
 func ReadString(fn string) string {
 	octets, err := ioutil.ReadFile(fn)
@@ -32,7 +32,7 @@ func ReadString(fn string) string {
 func tail(w http.ResponseWriter, filename string, pos int64) {
 	var err error
 
-	currentfn := path.Join(ServerDir, "current")
+	currentfn := path.Join(NetworkDir, "current")
 	if filename == "" {
 		filename, err = os.Readlink(currentfn)
 		if err != nil {
@@ -40,7 +40,7 @@ func tail(w http.ResponseWriter, filename string, pos int64) {
 		}
 	}
 	
-	filepath := path.Join(ServerDir, filename)
+	filepath := path.Join(NetworkDir, filename)
 
 	f, err := os.Open(filepath)
 	if err != nil {
@@ -76,7 +76,7 @@ func tail(w http.ResponseWriter, filename string, pos int64) {
 			if (len(parts) >= 4) && (parts[3] == "NEXTLOG") {
 				watcher.Remove(filepath)
 				filename = parts[4]
-				filepath = path.Join(ServerDir, filename)
+				filepath = path.Join(NetworkDir, filename)
 				f.Close()
 				f, err = os.Open(filename)
 				if err != nil {
@@ -105,10 +105,10 @@ func tail(w http.ResponseWriter, filename string, pos int64) {
 }
 
 func handleCommand(w http.ResponseWriter, text string, target string) {
-	fn := path.Join(ServerDir, fmt.Sprintf("outq/cgi.%d", time.Now().Unix()))
+	fn := path.Join(NetworkDir, fmt.Sprintf("outq/cgi.%d", time.Now().Unix()))
 	f, err := os.Create(fn)
 	if err != nil {
-		fmt.Fprintln(w, "NO")
+		fmt.Fprintln(w, "NO: Cannot create outq file")
 		fmt.Fprintln(w, err)
 		return
 	}
@@ -128,18 +128,18 @@ func handleCommand(w http.ResponseWriter, text string, target string) {
 
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	BaseDir := "servers"
+	BaseDir := "networks"
 	DefaultDir := path.Join(BaseDir, "default")
-	ServerDir = path.Join(BaseDir, r.FormValue("server"))
+	NetworkDir = path.Join(BaseDir, r.FormValue("network"))
 	
-	if path.Dir(DefaultDir) != path.Dir(ServerDir) {
-		ServerDir = DefaultDir
+	if path.Dir(DefaultDir) != path.Dir(NetworkDir) {
+		NetworkDir = DefaultDir
 	}
 	
-	authtok := ReadString(path.Join(ServerDir, "authtok"))
+	authtok := ReadString(path.Join(NetworkDir, "authtok"))
 	if r.FormValue("auth") != authtok {
 		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprintln(w, "NO")
+		fmt.Fprintln(w, "NO: Invalid authtok")
 		return
 	}
 	switch r.FormValue("type") {
