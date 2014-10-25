@@ -2,7 +2,7 @@
 
 var maxScrollback = 500;
 
-function Server(baseURL, network, authtok, messageHandler) {
+function Server(network, baseURL, authtok, messageHandler) {
   function handleEventSourceLine(line) {
     var lhs = line.split(" :", 1)[0]
   	var parts = lhs.split(' ')
@@ -20,9 +20,9 @@ function Server(baseURL, network, authtok, messageHandler) {
   function handleEventSourceMessage(oEvent) {
     msgs = oEvent.data.split("\n");
 
-    var first = Math.min(0, msgs.length - maxScrollback);
+    var first = Math.max(0, msgs.length - maxScrollback);
     for (var i = first; i < msgs.length; i += 1) {
-      handleEeventSourceLine(msgs[i]);
+      handleEventSourceLine(msgs[i]);
     }
   }
 
@@ -31,8 +31,8 @@ function Server(baseURL, network, authtok, messageHandler) {
     messageHandler(timestamp, null, "ERROR", null, null, [], null);
   }
 
-  var pullURL = baseURL + "?network=" + encodeURIComponent(network) + "&authtok=" + encodeURIComponent(authtok);
-  this.eventSource = new EventSource(baseURL);
+  var pullURL = baseURL + "?network=" + encodeURIComponent(network) + "&auth=" + encodeURIComponent(authtok);
+  this.eventSource = new EventSource(pullURL);
   this.eventSource.addEventListener("message", handleEventSourceMessage);
   this.eventSource.addEventListener("error", handleEventSourceError);
 }

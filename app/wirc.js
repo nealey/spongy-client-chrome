@@ -4,7 +4,9 @@ var urlRe = /[a-z]+:\/\/[^ ]*/;
 
 var nick = "Mme. M";
 
+// XXX: get rid of this
 var scrollbackLength = 500;
+var current;
 
 if (String.prototype.startsWith == null) {
 	String.prototype.startsWith = function(needle) {
@@ -13,7 +15,7 @@ if (String.prototype.startsWith == null) {
 }
 
 function getTemplate(className) {
-	return document.templates.getElementsByClassName(className)[0].cloneNode(true);
+	return templates.getElementsByClassName(className)[0].cloneNode(true);
 }
 
 function isinView(oObject) {
@@ -21,21 +23,19 @@ function isinView(oObject) {
 }
 
 function selectForum(room) {
-	var kids = document.rooms_list.childNodes;
+  if (current) {
+    current.classList.remove("selected");
+    // XXX: do this with a class, too
+    current.messages.display = "none";
+  }
 
-	for (i = 0; i < kids.length; i += 1) {
-		e = kids[i];
-		if (e == room) {
-			e.className = "room selected";
-			e.messages.display = "block";
-		} else {
-			e.className = "room";
-			e.messages.display = "none";
-		}
-	}
 
-	if (room.lastChild) {
-		room.lastChild.scrollIntoView(false);
+  current = room;
+  room.classList.add("selected");
+  room.messages.display = "block";
+
+	if (room.messages.lastChild) {
+		room.messages.lastChild.scrollIntoView(false);
 	}
 }
 
@@ -45,15 +45,17 @@ function getForumElement(forum) {
 
 	if (! fe) {
 		var room = getTemplate("channel room");
-		room.textContent = forum;
-		document.rooms_list.appendChild(room);
+		var content = room.getElementsByClassName("content-item");
+
+		content.textContent = forum;
+		rooms.appendChild(room);
 
 		fe = getTemplate("messages");
 		fe.room = room;
 
 		room.messages = fe;
 		// XXX: split out into non-anon function
-		room.addEventListener("click", function() {selectForum(fe)});
+		room.addEventListener("click", function() {selectForum(room)});
 
 		fora[forum] = fe;
 		document.getElementById("messages-container").appendChild(fe);
@@ -127,21 +129,13 @@ function focus(e) {
 	}, 50)
 }
 
-function addMessage(txt) {
-	var lhs = txt.split(" :", 1)[0]
-	var parts = lhs.split(' ')
-	var ts = new Date(parts[0] * 1000);
-	var fullSender = parts[1];
-	var command = parts[2];
-	var sender = parts[3];
-	var forum = parts[4];
-	var args = parts.slice(5);
-	var msg = txt.substr(lhs.length + 2)
-
+function addMessage(timestamp, fullSender, command, sender, forum, args, msg) {
 	var forumElement = getForumElement(forum);
 	var p = getTemplate("message");
 
-	addMessagePart(p, "timestamp", ts.toLocaleTimeString());
+	console.log(timestamp, msg);
+
+	addMessagePart(p, "timestamp", timestamp.toLocaleTimeString());
 
 	switch (command) {
 	case "PING":
@@ -171,15 +165,6 @@ function addMessage(txt) {
 	p.scrollIntoView(false);
 }
 
-function newmsg(oEvent) {
-	msgs = oEvent.data.split("\n");
-
-	var first = Math.max(0, msgs.length - scrollbackLength);
-	for (var i = first; i < msgs.length; i += 1) {
-		addMessage(msgs[i]);
-	}
-}
-
 function handleInput(oEvent) {
 	console.log(oEvent);
 	var oReq = new XMLHttpRequest();
@@ -190,8 +175,13 @@ function handleInput(oEvent) {
 	if (txt.startsWith("/connect ")) {
 		// XXX: should allow tokens with spaces
 		var parts = txt.split(" ");
+		var network = parts[1];
+		var url = parts[2];
+		var authtok = parts[3];
 
-		connect(parts[1], parts[2], parts[3]);
+		connect(network, url, authtok);
+    storedConnections[network] = [url, authtok];
+    chrome.storage.sync.set({"connections": storedConnections});
 	} else {
 		oReq.onload = reqListener;
 		oReq.open("POST", window.postURL, true);
@@ -203,35 +193,47 @@ function handleInput(oEvent) {
 	return false;
 }
 
-function connect(url, server, authtok) {
-	document.postURL = url;
-	var pullURL = url + "?server=" + server + "&auth=" + authtok
+var activeNetworks = {};
+var storedConnections = {};
 
-	if (document.source != null) {
-		document.source.close();
-	}
-	document.source = new EventSource(pullURL);
-	document.source.onmessage = newmsg;
+function connect(network, url, authtok) {
+  var newServer = new Server(network, url, authtok, addMessage);
+  var element;
 
-	chrome.storage.sync.set({"connections": [[url, server, authtok]]});
+  if (activeNetworks[network]) {
+    activeNetworks[network].close();
+    element = activeNetworks[network].element;
+  } else {
+    newServer.element = getTemplate("server-channels");
+    rooms.appendChild(newServer.element);
+  }
+
+  newServer.room = newServer.element.getElementsByClassName("server room")[0];
+  newServer.content = newServer.element.getElementsByClassName("content-item")[0];
+
+  newServer.content.textContent = network;
+
+  activeNetworks[network] = newServer;
 }
 
+
+
 function restore(items) {
-	var connections = items["connections"];
+	storedConnections = items["connections"];
 
-	for (var k = 0; k < connections.length; k += 1) {
-		var conn = connections[k];
+	for (var network in storedConnections) {
+	  var conn = storedConnections[network];
 
-		connect(conn[0], conn[1], conn[2]);
+	  connect(network, conn[0], conn[1]);
 	}
 }
 
 function init() {
-	chrome.storage.sync.get("connections", restore);
+	chrome.storage.sync.get(["connections"], restore);
 	document.getElementById("input").addEventListener("change", handleInput);
 
-	document.templates = document.getElementById("templates");
-	document.rooms_list = document.getElementById("rooms-container").getElementsByClassName("rooms")[0];
+	templates = document.getElementById("templates");
+	rooms = document.getElementById("rooms-container").getElementsByClassName("rooms")[0];
 }
 
 window.addEventListener("load", init);

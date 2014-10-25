@@ -1,15 +1,14 @@
 {
 	"appName": {
-		"message": "wIRC Chat Client",
+		"message": "Spongy Chat Client",
 		"description": "Application name"
 	},
 	"appShortName": {
-		"message": "wIRC",
+		"message": "Spongy Chat",
 		"description": "Short application name"
 	},
 	"appDesc": {
-		"message": "Chat client for the wIRC bouncer thingamajiggy",
+		"message": "Chat client for the Spongy bouncer thingamajiggy",
 		"description": "Application description for app store listing"
 	}
-}	
-
+}
