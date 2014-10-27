@@ -31,8 +31,29 @@ function Server(network, baseURL, authtok, messageHandler) {
     messageHandler(timestamp, null, "ERROR", null, null, [], null);
   }
 
+  function send(target, text) {
+    function handleError(oEvent) {
+      console.log("XXX: That didn't work out.", target, text)
+    }
+
+    var form = new FormData();
+    form.append("type", "command");
+    form.append("auth", authtok);
+    form.append("network", network);
+    form.append("target", target);
+    form.append("text", text);
+    console.log(form);
+
+    var oReq = new XMLHttpRequest();
+    oReq.addEventListener("error", handleError);
+		oReq.open("POST", baseURL, true);
+		oReq.send(form);
+  }
+
+  this.send = send;
+
   var pullURL = baseURL + "?network=" + encodeURIComponent(network) + "&auth=" + encodeURIComponent(authtok);
-  this.eventSource = new EventSource(pullURL);
-  this.eventSource.addEventListener("message", handleEventSourceMessage);
-  this.eventSource.addEventListener("error", handleEventSourceError);
+  var eventSource = new EventSource(pullURL);
+  eventSource.addEventListener("message", handleEventSourceMessage);
+  eventSource.addEventListener("error", handleEventSourceError);
 }

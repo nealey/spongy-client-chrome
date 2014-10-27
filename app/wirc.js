@@ -7,12 +7,23 @@ var nick = "Mme. M";
 // XXX: get rid of this
 var scrollbackLength = 500;
 var current;
+var target;
 
 if (String.prototype.startsWith == null) {
 	String.prototype.startsWith = function(needle) {
 		return this.lastIndexOf(needle, 0) == 0;
 	}
 }
+
+function djbhash(a) {
+  var r = 5381;
+
+  for (var i = 0; i < a.length; i += 1) {
+    r = (((r << 5) + r) + a.charCodeAt(i)) & 0xffff;
+  }
+  return r;
+}
+
 
 function getTemplate(className) {
 	return templates.getElementsByClassName(className)[0].cloneNode(true);
@@ -31,6 +42,7 @@ function selectForum(room) {
 
 
   current = room;
+  target = room.target;
   room.classList.add("selected");
   room.messages.style.display = "block";
 
@@ -54,6 +66,7 @@ function getForumElement(forum) {
 		fe.room = room;
 
 		room.messages = fe;
+		room.target = forum;
 		// XXX: split out into non-anon function
 		room.addEventListener("click", function() {selectForum(room)});
 
@@ -133,14 +146,24 @@ function addMessage(timestamp, fullSender, command, sender, forum, args, msg) {
 	var forumElement = getForumElement(forum);
 	var msge = getTemplate("message");
 
+	msge.classList.add("update");
+	msge.classList.add("privmsg");
+
+	if (sender == ".") {
+  	msge.classList.add("self");
+	}
+
 	console.log(timestamp, msg);
 
 	msge.getElementsByClassName("timestamp")[0].textContent =  timestamp.toLocaleTimeString();
 	var sourcee = msge.getElementsByClassName("source")[0];
 	var contente = msge.getElementsByClassName("content")[0];
 
+	var senderhash = djbhash(sender) % 30;
+	sourcee.setAttribute("colornumber", senderhash)
+
+
 	sourcee.textContent = sender;
-	contente.textContent = msg;
 
 	switch (command) {
 	case "PING":
@@ -148,6 +171,7 @@ function addMessage(timestamp, fullSender, command, sender, forum, args, msg) {
 	  return;
 	case "PRIVMSG":
   case "NOTICE":
+    addText(contente, msg);
 		break;
 	default:
 	  contente.textContent = command + " " + args + " " + msg;
@@ -162,11 +186,6 @@ function addMessage(timestamp, fullSender, command, sender, forum, args, msg) {
 }
 
 function handleInput(oEvent) {
-	console.log(oEvent);
-	var oReq = new XMLHttpRequest();
-	function reqListener() {
-	}
-
 	var txt = oEvent.target.value;
 	if (txt.startsWith("/connect ")) {
 		// XXX: should allow tokens with spaces
@@ -179,9 +198,7 @@ function handleInput(oEvent) {
     storedConnections[network] = [url, authtok];
     chrome.storage.sync.set({"connections": storedConnections});
 	} else {
-		oReq.onload = reqListener;
-		oReq.open("POST", window.postURL, true);
-		oReq.send(new FormData(event.target));
+	  server.send(target, txt);
 	}
 
 	oEvent.target.value = "";
@@ -189,6 +206,7 @@ function handleInput(oEvent) {
 	return false;
 }
 
+var server;
 var activeNetworks = {};
 var storedConnections = {};
 
@@ -210,6 +228,9 @@ function connect(network, url, authtok) {
   newServer.content.textContent = network;
 
   activeNetworks[network] = newServer;
+
+  // XXX: this should be bound to the element
+  server = newServer;
 }
 
 

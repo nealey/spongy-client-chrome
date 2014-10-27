@@ -366,7 +366,7 @@ ul {
   width: 100%;
 }
 
-.message .sender {
+.message .source {
   font-weight: bold;
   padding-right: 5px;
   margin-left: -5px;
@@ -376,11 +376,11 @@ ul {
   cursor: text;
 }
 
-.message .sender.empty {
+.message .source.empty {
   padding-right: 0;
 }
 
-.message .text {
+.message .content {
   display: inline;
   white-space: pre-wrap;
   cursor: text;
