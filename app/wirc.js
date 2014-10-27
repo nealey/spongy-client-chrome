@@ -26,13 +26,13 @@ function selectForum(room) {
   if (current) {
     current.classList.remove("selected");
     // XXX: do this with a class, too
-    current.messages.display = "none";
+    current.messages.style.display = "none";
   }
 
 
   current = room;
   room.classList.add("selected");
-  room.messages.display = "block";
+  room.messages.style.display = "block";
 
 	if (room.messages.lastChild) {
 		room.messages.lastChild.scrollIntoView(false);
@@ -45,7 +45,7 @@ function getForumElement(forum) {
 
 	if (! fe) {
 		var room = getTemplate("channel room");
-		var content = room.getElementsByClassName("content-item");
+		var content = room.getElementsByClassName("content-item")[0];
 
 		content.textContent = forum;
 		rooms.appendChild(room);
@@ -131,38 +131,34 @@ function focus(e) {
 
 function addMessage(timestamp, fullSender, command, sender, forum, args, msg) {
 	var forumElement = getForumElement(forum);
-	var p = getTemplate("message");
+	var msge = getTemplate("message");
 
 	console.log(timestamp, msg);
 
-	addMessagePart(p, "timestamp", timestamp.toLocaleTimeString());
+	msge.getElementsByClassName("timestamp")[0].textContent =  timestamp.toLocaleTimeString();
+	var sourcee = msge.getElementsByClassName("source")[0];
+	var contente = msge.getElementsByClassName("content")[0];
+
+	sourcee.textContent = sender;
+	contente.textContent = msg;
 
 	switch (command) {
 	case "PING":
 	case "PONG":
-		return;
-		break;
+	  return;
 	case "PRIVMSG":
-		addMessagePart(p, "forum", forum);
-		addMessagePart(p, "sender", sender);
-		addText(p, msg, (sender == forum));
-		break;
-	case "NOTICE":
-		addMessagePart(p, "forum", forum);
-		addMessagePart(p, "sender notice", sender);
-		addText(p, msg, (sender == forum));
+  case "NOTICE":
 		break;
 	default:
-		addMessagePart(p, "forum", forum);
-		addMessagePart(p, "sender", sender);
-		addMessagePart(p, "raw", command + " " + args + " " + msg);
+	  contente.textContent = command + " " + args + " " + msg;
 		break;
 	}
 	while (forumElement.childNodes.length > scrollbackLength) {
 		forumElement.removeChild(forumElement.firstChild)
 	}
-	forumElement.appendChild(p);
-	p.scrollIntoView(false);
+
+	forumElement.appendChild(msge);
+	msge.scrollIntoView(false);
 }
 
 function handleInput(oEvent) {
