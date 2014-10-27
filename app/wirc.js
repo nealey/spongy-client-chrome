@@ -159,7 +159,7 @@ function addMessage(timestamp, fullSender, command, sender, forum, args, msg) {
 	var sourcee = msge.getElementsByClassName("source")[0];
 	var contente = msge.getElementsByClassName("content")[0];
 
-	var senderhash = djbhash(sender) % 30;
+	var senderhash = djbhash(sender) % 31;
 	sourcee.setAttribute("colornumber", senderhash)
 
 
