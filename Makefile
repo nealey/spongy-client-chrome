@@ -13,3 +13,6 @@ icons: $(ICONS)
 
 app/icon-%.png: chat.svg
 	inkscape --export-png=$@ --export-width=$* $<
+
+package: icons
+	cd app && zip -ru ../package.zip .
