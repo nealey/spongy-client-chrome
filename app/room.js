@@ -7,7 +7,7 @@ function djbhash(a) {
   return r;
 }
 
-function addText(p, text, kiboze) {
+function purtify(text) {
 	// Look for a URL
 	var txtElement = document.createElement("span");
 	txtElement.className = "text";
@@ -30,7 +30,11 @@ function addText(p, text, kiboze) {
 		rhs = rhs.substr(match.index + match[0].length);
 	}
 	txtElement.appendChild(document.createTextNode(rhs));
-	p.appendChild(txtElement);
+
+	return txtElement;
+}
+
+function kiboze(busted) {
 
 	if ((kiboze) || (-1 != text.search(kibozeRe))) {
 		var k = document.getElementById("kiboze");
@@ -72,7 +76,7 @@ function newRoom(element, network, name, maxSize) {
     eTimestamp.textContent = timestamp.toLocaleTimeString();
     eSource.textContent = source;
     eSource.setAttribute("colornumber", djbhash(source) % 31);
-    eContent.textContent = content;
+    eContent.appendChild(purtify(content));
 
     messages.appendChild(message);
 
