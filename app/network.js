@@ -6,16 +6,17 @@ var networks = {};
 function networkConnect(network, baseURL, authtok) {
   var eventSource;
   var element = getTemplate("server-channels");
-  var channels = element.getElementByClassName("channels")[0];
+  var channels = element.getElementsByClassName("channels")[0];
   var roomElement = element.getElementsByClassName("server")[0];
-  var rooms = {".": room};
+  var rooms = {".": roomElement};
   newRoom(roomElement, element, network, maxScrollback);
 
-  function newRoom(name) {
+  function makeRoom(name) {
     var rElement = getTemplate("channel");
     newRoom(rElement, element, name, maxScrollback);
     channels.appendChild(rElement);
     rooms[name] = rElement;
+    return rElement;
   }
 
   function handleEventSourceLine(line) {
@@ -31,7 +32,7 @@ function networkConnect(network, baseURL, authtok) {
 
     var room = rooms[forum];
     if (! room) {
-      room = newRoom(forum);
+      room = makeRoom(forum);
     }
 
     // XXX: Handle differently based on command
@@ -63,7 +64,6 @@ function networkConnect(network, baseURL, authtok) {
     form.append("network", network);
     form.append("target", target);
     form.append("text", text);
-    console.log(form);
 
     var oReq = new XMLHttpRequest();
     oReq.addEventListener("error", handleError);
@@ -86,4 +86,6 @@ function networkConnect(network, baseURL, authtok) {
   eventSource = new EventSource(pullURL);
   eventSource.addEventListener("message", handleEventSourceMessage);
   eventSource.addEventListener("error", handleEventSourceError);
+
+  document.getElementsByClassName("rooms")[0].appendChild(element);
 }

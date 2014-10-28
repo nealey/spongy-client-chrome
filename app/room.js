@@ -50,9 +50,11 @@ var visibleRoom;
 
 function newRoom(element, network, name, maxSize) {
   var messages = getTemplate("messages");
-  if (! maxsize) {
+  var lastmsg;
+  if (! maxSize) {
     maxSize = 500;
   }
+
 
   element.addMessage = function(timestamp, command, source, content) {
     var message = getTemplate("message");
@@ -61,9 +63,10 @@ function newRoom(element, network, name, maxSize) {
     var eSource = message.getElementsByClassName("source")[0];
     var eContent = message.getElementsByClassName("content")[0];
 
-    message.nodeList.add(command);
-    if (source = ".") {
-      message.nodeList.add("self");
+    message.classList.add("update");
+    message.classList.add(command);
+    if (source == ".") {
+      message.classList.add("self");
     }
 
     eTimestamp.textContent = timestamp.toLocaleTimeString();
@@ -77,14 +80,16 @@ function newRoom(element, network, name, maxSize) {
       messages.removeChild(element.firstChild);
     }
 
+    lastmsg = message;
+
     if (visibleRoom == element) {
-      message.scrollIntoView(false);
+      lastmsg.scrollIntoView(false);
     }
   }
 
   element.hide = function() {
     element.classList.remove("selected");
-    messages.classList.add("hidden");
+    messages.style.display = "none";
   }
 
   element.show = function() {
@@ -92,7 +97,8 @@ function newRoom(element, network, name, maxSize) {
       visibleRoom.hide()
     }
     element.classList.add("selected");
-    messages.classList.remove("hidden");
+    messages.style.display = null;
+    lastmsg.scrollIntoView(false);
     visibleRoom = element;
   }
 
@@ -108,6 +114,8 @@ function newRoom(element, network, name, maxSize) {
   element.hide();
   element.addEventListener("click", clicked);
   element.getElementsByClassName("content-item")[0].textContent = name;
+
+  document.getElementById("messages-container").appendChild(messages);
 
   return element;
 }
