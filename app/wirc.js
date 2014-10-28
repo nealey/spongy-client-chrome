@@ -4,26 +4,11 @@ var urlRe = /[a-z]+:\/\/[^ ]*/;
 
 var nick = "Mme. M";
 
-// XXX: get rid of this
-var scrollbackLength = 500;
-var current;
-var target;
-
 if (String.prototype.startsWith == null) {
 	String.prototype.startsWith = function(needle) {
 		return this.lastIndexOf(needle, 0) == 0;
 	}
 }
-
-function djbhash(a) {
-  var r = 5381;
-
-  for (var i = 0; i < a.length; i += 1) {
-    r = (((r << 5) + r) + a.charCodeAt(i)) & 0xffff;
-  }
-  return r;
-}
-
 
 function getTemplate(className) {
 	return templates.getElementsByClassName(className)[0].cloneNode(true);
@@ -33,95 +18,12 @@ function isinView(oObject) {
 	return (oObject.offsetParent.clientHeight <= oObject.offsetTop);
 }
 
-function selectForum(room) {
-  if (current) {
-    current.classList.remove("selected");
-    // XXX: do this with a class, too
-    current.messages.style.display = "none";
-  }
-
-
-  current = room;
-  target = room.target;
-  room.classList.add("selected");
-  room.messages.style.display = "block";
-
-	if (room.messages.lastChild) {
-		room.messages.lastChild.scrollIntoView(false);
-	}
-}
-
-fora = {}
-function getForumElement(forum) {
-	var fe = fora[forum];
-
-	if (! fe) {
-		var room = getTemplate("channel room");
-		var content = room.getElementsByClassName("content-item")[0];
-
-		content.textContent = forum;
-		rooms.appendChild(room);
-
-		fe = getTemplate("messages");
-		fe.room = room;
-
-		room.messages = fe;
-		room.target = forum;
-		// XXX: split out into non-anon function
-		room.addEventListener("click", function() {selectForum(room)});
-
-		fora[forum] = fe;
-		document.getElementById("messages-container").appendChild(fe);
-	}
-
-	return fe;
-}
-
 function addMessagePart(p, className, text) {
 	var e = document.createElement("span");
 	e.className = className;
 	e.appendChild(document.createTextNode(text));
 	p.appendChild(e);
 	p.appendChild(document.createTextNode(" "));
-}
-
-function addText(p, text, kiboze) {
-	// Look for a URL
-	var txtElement = document.createElement("span");
-	txtElement.className = "text";
-	var rhs = text;
-	var match;
-
-	while ((match = urlRe.exec(rhs)) != null) {
-		var before = rhs.substr(0, match.index);
-		var a = document.createElement("a");
-		var href = match[0];
-
-		if (href.indexOf("hxx") == 0) {
-			href = "htt" + href.substr(3);
-		}
-		a.href = href
-		a.target = "_blank";
-		a.appendChild(document.createTextNode(match[0]));
-		txtElement.appendChild(document.createTextNode(before));
-		txtElement.appendChild(a);
-		rhs = rhs.substr(match.index + match[0].length);
-	}
-	txtElement.appendChild(document.createTextNode(rhs));
-	p.appendChild(txtElement);
-
-	if ((kiboze) || (-1 != text.search(kibozeRe))) {
-		var k = document.getElementById("kiboze");
-		var p2 = p.cloneNode(true);
-
-		if (k) {
-			k.insertBefore(p2, k.firstChild);
-			p2.onclick = function() { focus(p); }
-
-			// Setting title makes the tab flash sorta
-			document.title = document.title;
-		}
-	}
 }
 
 function focus(e) {
@@ -142,49 +44,6 @@ function focus(e) {
 	}, 50)
 }
 
-function addMessage(timestamp, fullSender, command, sender, forum, args, msg) {
-	var forumElement = getForumElement(forum);
-	var msge = getTemplate("message");
-
-	msge.classList.add("update");
-	msge.classList.add("privmsg");
-
-	if (sender == ".") {
-  	msge.classList.add("self");
-	}
-
-	console.log(timestamp, msg);
-
-	msge.getElementsByClassName("timestamp")[0].textContent =  timestamp.toLocaleTimeString();
-	var sourcee = msge.getElementsByClassName("source")[0];
-	var contente = msge.getElementsByClassName("content")[0];
-
-	var senderhash = djbhash(sender) % 31;
-	sourcee.setAttribute("colornumber", senderhash)
-
-
-	sourcee.textContent = sender;
-
-	switch (command) {
-	case "PING":
-	case "PONG":
-	  return;
-	case "PRIVMSG":
-  case "NOTICE":
-    addText(contente, msg);
-		break;
-	default:
-	  contente.textContent = command + " " + args + " " + msg;
-		break;
-	}
-	while (forumElement.childNodes.length > scrollbackLength) {
-		forumElement.removeChild(forumElement.firstChild)
-	}
-
-	forumElement.appendChild(msge);
-	msge.scrollIntoView(false);
-}
-
 function handleInput(oEvent) {
 	var txt = oEvent.target.value;
 	if (txt.startsWith("/connect ")) {
@@ -198,7 +57,7 @@ function handleInput(oEvent) {
     storedConnections[network] = [url, authtok];
     chrome.storage.sync.set({"connections": storedConnections});
 	} else {
-	  server.send(target, txt);
+	  visibleRoom.send(txt);
 	}
 
 	oEvent.target.value = "";
@@ -206,42 +65,13 @@ function handleInput(oEvent) {
 	return false;
 }
 
-var server;
-var activeNetworks = {};
-var storedConnections = {};
-
-function connect(network, url, authtok) {
-  var newServer = new Server(network, url, authtok, addMessage);
-  var element;
-
-  if (activeNetworks[network]) {
-    activeNetworks[network].close();
-    element = activeNetworks[network].element;
-  } else {
-    newServer.element = getTemplate("server-channels");
-    rooms.appendChild(newServer.element);
-  }
-
-  newServer.room = newServer.element.getElementsByClassName("server room")[0];
-  newServer.content = newServer.element.getElementsByClassName("content-item")[0];
-
-  newServer.content.textContent = network;
-
-  activeNetworks[network] = newServer;
-
-  // XXX: this should be bound to the element
-  server = newServer;
-}
-
-
-
 function restore(items) {
 	storedConnections = items["connections"];
 
 	for (var network in storedConnections) {
 	  var conn = storedConnections[network];
 
-	  connect(network, conn[0], conn[1]);
+	  networkConnect(network, conn[0], conn[1]);
 	}
 }
 
