@@ -114,6 +114,7 @@ func parse(v string) (Message, error) {
 	m.FullSender = "."
 	m.Forum = "."
 	m.Sender = "."
+	m.Args = parts
 
 	parts = strings.Split(lhs, " ")
 	if parts[0][0] == ':' {
@@ -220,7 +221,7 @@ func usage() {
 func main() {
 	dotls := flag.Bool("notls", true, "Disable TLS security")
 	outqdir := flag.String("outq", "outq", "Output queue directory")
-	flag.UintVar(&maxlogsize, "logsize", 8000, "Log entries before rotating")
+	flag.UintVar(&maxlogsize, "logsize", 1000, "Log entries before rotating")
 	flag.StringVar(&gecos, "gecos", "Bob The Merry Slug", "Gecos entry (full name)")
 
 	flag.Parse()

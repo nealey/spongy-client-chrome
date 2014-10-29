@@ -20,15 +20,16 @@ function networkConnect(network, baseURL, authtok) {
   }
 
   function handleEventSourceLine(line) {
-    var lhs = line.split(" :", 1)[0]
-  	var parts = lhs.split(' ')
-  	var timestamp = new Date(parts[0] * 1000);
+    var lhs = line.split(" :", 1)[0];
+    var parts = lhs.split(' ');
+
+    var timestamp = new Date(parts[0] * 1000);
     var fullSender = parts[1];
-  	var command = parts[2].toLowerCase();
-  	var sender = parts[3];
-  	var forum = parts[4];
-  	var args = parts.slice(5);
-  	var txt = line.substr(lhs.length + 2);
+    var command = parts[2].toLowerCase();
+    var sender = parts[3];
+    var forum = parts[4];
+    var args = parts.slice(5);
+    var txt = line.substr(lhs.length + 2);
 
     var room = rooms[forum];
     if (! room) {
@@ -36,7 +37,7 @@ function networkConnect(network, baseURL, authtok) {
     }
 
     // XXX: Handle differently based on command
-    room.addMessage(timestamp, command, sender, txt);
+    room.addMessage(timestamp, fullSender, command, sender, args, txt);
   }
 
   function handleEventSourceMessage(oEvent) {
@@ -50,7 +51,8 @@ function networkConnect(network, baseURL, authtok) {
 
   function handleEventSourceError(oEvent) {
     timestamp = new Date();
-    messageHandler(timestamp, null, "ERROR", null, null, [], null);
+    roomElement.addMessage(timestamp, ".", "fault", ".", [], "Unable to open events feed (permissions problem on server?)");
+    console.log(oEvent);
   }
 
   element.send = function(target, text) {

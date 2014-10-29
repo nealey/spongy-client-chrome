@@ -73,16 +73,16 @@ func tail(w http.ResponseWriter, filename string, pos int64) {
 			pos += int64(len(t)) + 1 // XXX: this breaks if we ever see \r\n
 			
 			parts := strings.Split(t, " ")
-			if (len(parts) >= 4) && (parts[3] == "NEXTLOG") {
+			if (len(parts) >= 4) && (parts[2] == "NEXTLOG") {
 				watcher.Remove(filepath)
 				filename = parts[4]
 				filepath = path.Join(NetworkDir, filename)
 				f.Close()
-				f, err = os.Open(filename)
+				f, err = os.Open(filepath)
 				if err != nil {
 					log.Fatal(err)
 				}
-				watcher.Add(filename)
+				watcher.Add(filepath)
 			}
 			fmt.Fprintf(w, "data: %s\n", t)
 			printid = true
