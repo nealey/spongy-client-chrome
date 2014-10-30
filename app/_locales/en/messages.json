@@ -1,20 +1,21 @@
 {
 	"appName": {
-		"message": "Spongy Chat Client",
-		"description": "Application name"
+		"description": "Application name",
+		"message": "Spongy Chat Client"
 	},
 	"appShortName": {
-		"message": "Spongy Chat",
-		"description": "Short application name"
+		"description": "Short application name",
+		"message": "Spongy Chat"
 	},
 	"appDesc": {
-		"message": "Chat client for the Spongy bouncer thingamajiggy",
-		"description": "Application description for app store listing"
+		"description": "Application description for app store listing",
+		"message": "Chat client for the Spongy bouncer thingamajiggy"
 	},
 
 
 	"unknownCommand": {
-	  "message": "$COMMAND$ $ARGS$ $TEXT$",
+	  "description": "Text for unrecognized command",
+	  "message": "??? $COMMAND$ $ARGS$ $TEXT$",
 	  "placeholders": {
 	    "fullSender": {
   	    "content": "$1",
@@ -44,20 +45,31 @@
 	},
 
 	"privmsgCommand": {
+    "description": "Text for a privmsg (a regular chat message)",
+	  "message": "$6"
+	},
+
+	"noticeCommand": {
+	  "description": "Text for a notice",
 	  "message": "$6"
 	},
 
 	"nickCommand": {
+    "description": "Text for nickname change",
 	  "message": "$1 is now known as $3"
 	},
 
 	"modeCommand": {
-	  "message": "$3 sets channel mode $5"
+	  "message": "sets channel mode $5"
 	},
 
-	"joinCommand": {
-	  "message": "joins the channel."
+  "joinCommand": {
+    "description": "Channel join",
+    "message": "joins the channel."
+  },
+
+  "faultCommand": {
+    "description": "Spongy fault",
+    "message": "Spongy error: $6"
 	}
-
-
 }

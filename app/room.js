@@ -98,7 +98,6 @@ function newRoom(element, network, name, maxSize) {
     var eSource = message.getElementsByClassName("source")[0];
     var eContent = message.getElementsByClassName("content")[0];
 
-    message.classList.add("update");
     message.classList.add(command);
     if (sender == ".") {
       message.classList.add("self");
