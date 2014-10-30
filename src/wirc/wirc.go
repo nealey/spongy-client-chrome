@@ -9,6 +9,7 @@ import (
 	"logfile"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -114,7 +115,6 @@ func parse(v string) (Message, error) {
 	m.FullSender = "."
 	m.Forum = "."
 	m.Sender = "."
-	m.Args = parts
 
 	parts = strings.Split(lhs, " ")
 	if parts[0][0] == ':' {
@@ -140,6 +140,7 @@ func parse(v string) (Message, error) {
 		}
 	case "PART", "MODE", "TOPIC", "KICK":
 		m.Forum = parts[1]
+		m.Args = parts[2:]
 	case "JOIN":
 		if len(parts) == 1 {
 			m.Forum = m.Text
@@ -157,11 +158,23 @@ func parse(v string) (Message, error) {
 	case "NICK":
 		if len(parts) > 1 {
 			m.Sender = parts[1]
+			m.Args = parts[2:]
 		} else {
 			m.Sender = m.Text
 			m.Text = ""
+			m.Args = parts[1:]
 		}
 		m.Forum = m.Sender
+	case "353":
+		m.Forum = parts[3]
+	default:
+		numeric, _ := strconv.Atoi(m.Command)
+		if numeric >= 300 {
+			if len(parts) > 2 {
+				m.Forum = parts[2]
+			}
+		}
+		m.Args = parts[1:]
 	}
 
 	return m, nil
