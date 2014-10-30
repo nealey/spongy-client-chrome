@@ -10,5 +10,54 @@
 	"appDesc": {
 		"message": "Chat client for the Spongy bouncer thingamajiggy",
 		"description": "Application description for app store listing"
+	},
+
+
+	"unknownCommand": {
+	  "message": "$COMMAND$ $ARGS$ $TEXT$",
+	  "placeholders": {
+	    "fullSender": {
+  	    "content": "$1",
+  	    "example": "fritz!~bob@example.net"
+	    },
+	    "command": {
+	      "content": "$2",
+	      "example": "PRIVMSG"
+	    },
+	   "sender": {
+	     "content": "$3",
+	     "example": "fritz"
+	    },
+	    "forum": {
+        "content": "$4",
+        "example": "#hottub"
+      },
+      "args": {
+        "content": "$5",
+        "example": "+o,fred"
+      },
+      "text": {
+        "content": "$6",
+        "example": "Hello everybody"
+      }
+	  }
+	},
+
+	"privmsgCommand": {
+	  "message": "$6"
+	},
+
+	"nickCommand": {
+	  "message": "$1 is now known as $3"
+	},
+
+	"modeCommand": {
+	  "message": "$3 sets channel mode $5"
+	},
+
+	"joinCommand": {
+	  "message": "joins the channel."
 	}
+
+
 }

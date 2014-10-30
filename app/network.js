@@ -31,6 +31,12 @@ function networkConnect(network, baseURL, authtok) {
     var args = parts.slice(5);
     var txt = line.substr(lhs.length + 2);
 
+    switch (command) {
+      case "prevlog":
+        // Just ignore this
+        return;
+    }
+
     var room = rooms[forum];
     if (! room) {
       room = makeRoom(forum);
