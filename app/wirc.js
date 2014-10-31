@@ -65,6 +65,16 @@ function handleInput(oEvent) {
 	return false;
 }
 
+function hideChannels(oEvent) {
+  var lhs = document.getElementById("rooms-and-nicks");
+
+  if (lhs.classList.contains("hidden")) {
+    lhs.classList.remove("hidden");
+  } else {
+    lhs.classList.add("hidden");
+  }
+}
+
 function restore(items) {
 	storedConnections = items["connections"];
 
@@ -78,6 +88,7 @@ function restore(items) {
 function init() {
 	chrome.storage.sync.get(["connections"], restore);
 	document.getElementById("input").addEventListener("change", handleInput);
+	document.getElementById("hide-channels").addEventListener("click", hideChannels);
 
 	templates = document.getElementById("templates");
 	rooms = document.getElementById("rooms-container").getElementsByClassName("rooms")[0];

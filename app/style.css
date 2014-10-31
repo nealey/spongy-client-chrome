@@ -362,7 +362,7 @@ ul {
 
 .source-content-container {
   display: table-cell;
-  padding: 4px 10px 4px 15px;
+  padding: 1px 10px 1px 15px;
   width: 100%;
 }
 
@@ -384,6 +384,7 @@ ul {
   display: inline;
   white-space: pre-wrap;
   cursor: text;
+  word-break: break-word;
 }
 
 #messages-container .messages .message:first-child .source-content-container {
@@ -392,33 +393,6 @@ ul {
 
 #messages-container .messages .message:last-child .source-content-container {
   padding-bottom: 8px;
-}
-
-.message:not(.privmsg) + .message.privmsg .source-content-container {
-  padding-top: 4px;
-  padding-bottom: 1px;
-}
-.message.privmsg + .message.privmsg .source-content-container {
-  padding-top: 1px;
-  padding-bottom: 1px;
-}
-
-.message:not(.group) + .message.group .source-content-container {
-  padding-top: 4px;
-  padding-bottom: 0px;
-}
-.message.group + .message.group .source-content-container {
-  padding-top: 0px;
-  padding-bottom: 0px;
-}
-
-.message:not(.notice-group) + .message.notice-group .source-content-container {
-  padding-top: 4px;
-  padding-bottom: 0px;
-}
-.message.notice-group + .message.notice-group .source-content-container {
-  padding-top: 0px;
-  padding-bottom: 0px;
 }
 
 .message.list {
