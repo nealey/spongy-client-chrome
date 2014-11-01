@@ -75,6 +75,10 @@ function hideChannels(oEvent) {
   }
 }
 
+function keyPress(oEvent) {
+  document.getElementById("input").focus();
+}
+
 function restore(items) {
 	storedConnections = items["connections"];
 
@@ -89,6 +93,7 @@ function init() {
 	chrome.storage.sync.get(["connections"], restore);
 	document.getElementById("input").addEventListener("change", handleInput);
 	document.getElementById("hide-channels").addEventListener("click", hideChannels);
+	window.addEventListener("keypress", keyPress);
 
 	templates = document.getElementById("templates");
 	rooms = document.getElementById("rooms-container").getElementsByClassName("rooms")[0];
