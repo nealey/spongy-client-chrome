@@ -45,6 +45,7 @@ function focus(e) {
 }
 
 function handleInput(oEvent) {
+  console.log(oEvent);
 	var txt = oEvent.target.value;
 	if (txt.startsWith("/connect ")) {
 		// XXX: should allow tokens with spaces
@@ -53,7 +54,7 @@ function handleInput(oEvent) {
 		var url = parts[2];
 		var authtok = parts[3];
 
-		connect(network, url, authtok);
+		networkConnect(network, url, authtok);
     storedConnections[network] = [url, authtok];
     chrome.storage.sync.set({"connections": storedConnections});
 	} else {
@@ -77,6 +78,9 @@ function hideChannels(oEvent) {
 
 function keyPress(oEvent) {
   document.getElementById("input").focus();
+  if (oEvent.keyIdentifier == "Enter") {
+    handleInput(oEvent);
+  }
 }
 
 function restore(items) {
@@ -91,7 +95,7 @@ function restore(items) {
 
 function init() {
 	chrome.storage.sync.get(["connections"], restore);
-	document.getElementById("input").addEventListener("change", handleInput);
+	//document.getElementById("input").addEventListener("change", handleInput);
 	document.getElementById("hide-channels").addEventListener("click", hideChannels);
 	window.addEventListener("keypress", keyPress);
 
