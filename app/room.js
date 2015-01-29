@@ -140,6 +140,13 @@ function newRoom(element, network, name, maxSize) {
     network.send(name, text);
   }
 
+  element.close = function() {
+    console.log(messages);
+    console.log(messages.parent);
+    messages.parent.removeChild(messages);
+    element.parent.removeChild(element);
+  }
+
   function clicked() {
     element.show();
   }

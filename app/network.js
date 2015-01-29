@@ -80,8 +80,11 @@ function networkConnect(network, baseURL, authtok) {
   }
 
   element.close = function() {
+    console.log("Closing");
     eventSource.close();
     element.parentNode.removeChild(element);
+    roomElement.close();
+    // XXX: Close all associated rooms, too!
   }
 
 
