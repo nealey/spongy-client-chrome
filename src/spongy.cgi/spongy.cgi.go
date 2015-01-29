@@ -75,7 +75,7 @@ func tail(w http.ResponseWriter, filename string, pos int64) {
 			parts := strings.Split(t, " ")
 			if (len(parts) >= 4) && (parts[2] == "NEXTLOG") {
 				watcher.Remove(filepath)
-				filename = parts[4]
+				filename = parts[3]
 				filepath = path.Join(NetworkDir, filename)
 				f.Close()
 				f, err = os.Open(filepath)
@@ -83,6 +83,7 @@ func tail(w http.ResponseWriter, filename string, pos int64) {
 					log.Fatal(err)
 				}
 				watcher.Add(filepath)
+				pos = 0
 			}
 			fmt.Fprintf(w, "data: %s\n", t)
 			printid = true

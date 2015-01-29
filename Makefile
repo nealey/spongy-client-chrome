@@ -6,8 +6,14 @@ ICONS += app/icon-256.png
 
 all: icons serverside
 
-serverside:
-	GOPATH=$(CURDIR) go build -v all
+serverside: spongy spongy.cgi
+
+spongy: src/spongy/spongy.go
+	GOPATH=$(CURDIR) go build -v $@
+
+spongy.cgi: src/spongy.cgi/spongy.cgi.go
+	GOPATH=$(CURDIR) go build -v $@
+	chmod +s $@
 
 icons: $(ICONS)
 
