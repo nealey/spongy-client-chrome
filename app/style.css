@@ -11,8 +11,8 @@ html, body {
 
 body {
   color: #505053;
-  font-family: sans-serif;
-  font-size: 14px;
+  /* font-family: sans-serif; */
+  font-size: 100%;
 }
 
 .hidden {
@@ -81,7 +81,7 @@ ul {
 #rooms-and-nicks h1 {
   color: #406698;
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: smaller;
   padding: 8px 0px 2px 8px;
   margin: 0px;
 }
@@ -149,7 +149,7 @@ ul {
   right: 2px;
   top: -1px;
   cursor: pointer;
-  font-size: 18px;
+  font-size: larger;
   display: none;
 }
 
@@ -232,7 +232,7 @@ ul {
   right: 6px;
   top: -1px;
   cursor: pointer;
-  font-size: 30px;
+  font-size: x-large;
   color: rgba(0, 0, 0, .25);
   display: none;
 }
@@ -351,7 +351,7 @@ ul {
 .message .timestamp {
   color: #6060C0;
   font-style: italic;
-  font-size: smaller;
+  /* font-size: smaller; */
   white-space: nowrap;
   display: table-cell;
   text-align: right;
@@ -448,7 +448,7 @@ ul {
   border-radius: 5px;
   -webkit-box-shadow: 0px 0px 3px #888;
   color: #505053;
-  font-size: 14px;
+  font-size: 100%;
   padding: 0px 8px;
   outline: 0;
 }
