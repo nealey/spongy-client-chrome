@@ -58,6 +58,7 @@ Spongy CGI Configuration
 If you'd like to run `spongy.cgi`,
 that's fine,
 but you have to create a configuration file
+called `spongy.cfg`
 in the same directory as the CGI.
 It looks like this:
 
@@ -65,6 +66,8 @@ It looks like this:
 		"auth": "bdf0ff3f50f492bd0fb261caf097829138f472dd0ab3b504fe0f01e8c8225664",
 		"basedir": "/home/neale/lib/irc"
 	}
+
+`basedir` is the path to the BASE DIRECTORY from above.
 
 `auth` is a sha256 checksum of your password.
 You can generate it for the password "bloop" like this:

@@ -23,7 +23,8 @@ Features
 * Gracefully handles clients with transient networking, such as cell phones and laptops.
 
 
-Todo
------
+Other Documentation
+-------------------
 
-[Todo list](TODO)
+* [Installation Instructions](INSTALL)
+* [Todo list](TODO)
