@@ -4,7 +4,7 @@ Spongy Server Installation
 You gotta make a base directory with an `authtok` file,
 and a subdirectory for every server you want to connect to.
 
-	BASE DIRECTORY
+	BASE_DIRECTORY
 	+-- slashnet
 	|   +-- handler
 	|   +-- config/
@@ -49,7 +49,14 @@ do something like this:
 	$ echo 'PRIVMSG #channel :hello world' > outq/$$.$(date +%s)
 
 
+Starting up
+-----------
 
+Pretty easy:
+
+	$ cd BASE_DIRECTORY; /path/to/spongy
+
+Spongy will go off and connect to every configured server in BASE_DIRECTORY.
 
 
 Spongy CGI Configuration
@@ -57,22 +64,22 @@ Spongy CGI Configuration
 
 If you'd like to run `spongy.cgi`,
 that's fine,
-but you have to create a configuration file
-called `spongy.cfg`
+but you have to create a file
+called `spongy.basedir`
 in the same directory as the CGI.
-It looks like this:
+You can do it like this:
 
-	{
-		"auth": "bdf0ff3f50f492bd0fb261caf097829138f472dd0ab3b504fe0f01e8c8225664",
-		"basedir": "/home/neale/lib/irc"
-	}
+	$ echo '/home/neale/BASE_DIRECTORY' > spongy.basedir
 
-`basedir` is the path to the BASE DIRECTORY from above.
+And then,
+in `BASE_DIRECTORY`,
+you need a file called `auth`
+with a sha256 checksum of the authorization token
+you want to use in the client.
 
-`auth` is a sha256 checksum of your password.
-You can generate it for the password "bloop" like this:
+You can make it like this:
 
-	$ echo -n "bloop" | sha256sum
+	$ printf 'my fabulous token' | sha256sum | cut -d\  -f1 > BASE_DIRECTORY
 
 
 Permissions
@@ -85,11 +92,17 @@ make `spongy.cgi` setuid to you.
 	$ chmod +s spongy.cgi
 
 If it's setuid,
-you don't need to make your config file readable by whatever user
+you don't need to make your config file
+(or any other files) 
+readable by the user that
 runs the web server.
 
 Sadly,
-Apache has a whole bunch of weirdness that prevents this from working.
+Apache has a whole bunch of weirdness in place
+which prevents setuid CGI from working
+without a lot of configuration twiddling.
+But it also has its own mechanism for running CGI
+as the user who owns it.
 So if you're using Apache,
 please send me a recipe for your solution,
 and I'll add it to the distribution :)
