@@ -1,24 +1,18 @@
-ICONS += app/icon-16.png
-ICONS += app/icon-32.png
-ICONS += app/icon-48.png
-ICONS += app/icon-128.png
-ICONS += app/icon-256.png
+ICONS += icon-16.png
+ICONS += icon-32.png
+ICONS += icon-48.png
+ICONS += icon-128.png
+ICONS += icon-256.png
 
-all: icons serverside
-
-serverside: spongy spongy.cgi
-
-spongy: src/spongy/spongy.go
-	GOPATH=$(CURDIR) go build -v $@
-
-spongy.cgi: src/spongy.cgi/spongy.cgi.go
-	GOPATH=$(CURDIR) go build -v $@
-	chmod +s $@
+all: icons
 
 icons: $(ICONS)
 
-app/icon-%.png: chat.svg
+icon-%.png: icon.svg
 	inkscape --export-png=$@ --export-width=$* $<
 
 package: icons
-	cd app && zip -ru ../package.zip .
+	git ls-files | zip -ru -@ /tmp/spongy-client-chrome.zip
+
+clean:
+	rm -f $(ICONS)
