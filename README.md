@@ -1,4 +1,4 @@
-Woozle IRC
+Spongy IRC
 =========
 
 This is a sort of bouncer for clients with transient network connections,
@@ -26,5 +26,5 @@ Features
 Other Documentation
 -------------------
 
-* [Installation Instructions](INSTALL)
-* [Todo list](TODO)
+* [Installation Instructions](INSTALL.md)
+* [Todo list](TODO.md)
