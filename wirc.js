@@ -48,14 +48,14 @@ function handleInput(oEvent) {
   console.log(oEvent);
 	var txt = oEvent.target.value;
 	if (txt.startsWith("/connect ")) {
-		// XXX: should allow tokens with spaces
 		var parts = txt.split(" ");
-		var network = parts[1];
-		var url = parts[2];
-		var authtok = parts[3];
+		var url = parts[1];
+		var authtok = parts.slice(2).join(" ");
+		console.log(url)
+		console.log(authtok)
 
-		networkConnect(network, url, authtok);
-    storedConnections[network] = [url, authtok];
+		networkConnect(url, authtok);
+    storedConnections = [[url, authtok]];
     chrome.storage.sync.set({"connections": storedConnections});
 	} else {
 	  visibleRoom.send(txt);
@@ -86,10 +86,10 @@ function keyPress(oEvent) {
 function restore(items) {
 	storedConnections = items["connections"];
 
-	for (var network in storedConnections) {
-	  var conn = storedConnections[network];
+	for (var i in storedConnections) {
+	  var conn = storedConnections[i];
 
-	  networkConnect(network, conn[0], conn[1]);
+	  networkConnect(conn[0], conn[1]);
 	}
 }
 

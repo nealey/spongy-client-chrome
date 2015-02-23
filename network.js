@@ -3,8 +3,9 @@
 var maxScrollback = 500;
 var networks = {};
 
-function networkConnect(network, baseURL, authtok) {
+function networkConnect(baseURL, authtok) {
   var eventSource;
+  var network = "server"; // XXX: remove this kludge!
   var element = getTemplate("server-channels");
   var channels = element.getElementsByClassName("channels")[0];
   var roomElement = element.getElementsByClassName("server")[0];
@@ -68,8 +69,8 @@ function networkConnect(network, baseURL, authtok) {
 
     var form = new FormData();
     form.append("type", "command");
+    form.append("network", "slashnet");
     form.append("auth", authtok);
-    form.append("network", network);
     form.append("target", target);
     form.append("text", text);
 
@@ -93,7 +94,7 @@ function networkConnect(network, baseURL, authtok) {
   }
   networks[network] = element;
 
-  var pullURL = baseURL + "?network=" + encodeURIComponent(network) + "&auth=" + encodeURIComponent(authtok);
+  var pullURL = baseURL + "?auth=" + encodeURIComponent(authtok);
   eventSource = new EventSource(pullURL);
   eventSource.addEventListener("message", handleEventSourceMessage);
   eventSource.addEventListener("error", handleEventSourceError);
